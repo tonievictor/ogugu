@@ -8,16 +8,15 @@ import (
 )
 
 func NewConsoleExporter() (sdktrace.SpanExporter, error) {
-	return stdouttrace.New()
+	return stdouttrace.New(stdouttrace.WithPrettyPrint())
 }
 
 func NewTraceProvider(exp sdktrace.SpanExporter) *sdktrace.TracerProvider {
-	// Ensure default SDK resources and the required service name are set.
 	r, err := resource.Merge(
 		resource.Default(),
 		resource.NewWithAttributes(
 			semconv.SchemaURL,
-			semconv.ServiceName("ExampleService"),
+			semconv.ServiceName("Ogugu Web Server"),
 		),
 	)
 	if err != nil {

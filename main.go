@@ -12,7 +12,9 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 
+	"ogugu/database"
 	"ogugu/docs"
+	"ogugu/models"
 	"ogugu/router"
 	"ogugu/telemetry"
 )
@@ -28,16 +30,25 @@ func main() {
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 
 	logger, _ := zap.NewProduction()
-	New(logger)
+	db, err := database.Init("postgres", os.Getenv("DATABASE_URL"))
+	if err != nil {
+		logger.Error("unable to initialize database")
+		return
+	}
+
+	models.New(db)
+
+	InitServer(logger)
 }
 
-func New(log *zap.Logger) {
+func InitServer(log *zap.Logger) {
 	r := router.Routes(log)
 
-	log.Info("Server is runnig on port 8080")
+	log.Info("Server is running on port 8080")
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
 	defer stop()
 
+	// set up tracing
 	exp, err := telemetry.NewConsoleExporter()
 	tp := telemetry.NewTraceProvider(exp)
 	defer func() { _ = tp.Shutdown(ctx) }()
@@ -59,12 +70,13 @@ func New(log *zap.Logger) {
 	select {
 	case err = <-serverErr:
 		log.Error("API", zap.String("error", err.Error()))
+		close(serverErr)
 		return
 	case <-ctx.Done():
 		log.Info("API: Graceful shutdown: received\n")
 		stop()
 	}
 
-	server.Shutdown(context.Background())
+	server.Shutdown(ctx)
 	return
 }
