@@ -111,7 +111,8 @@ func (u User) UpdateUser(ctx context.Context, id string, field, value string) (U
 		UPDATE users 
 		SET %s = $1
 		SET updated_at = $2
-		WHERE id = $2;`, field)
+		WHERE id = $2
+		RETURNING id, username, email, avatar, created_at, updated_at;`, field)
 	row := db.QueryRowContext(dbctx, query, value, id, time.Now())
 
 	err := row.Scan(
