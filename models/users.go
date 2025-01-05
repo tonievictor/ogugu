@@ -13,9 +13,11 @@ var tracer = otel.Tracer("models.user")
 type UserRepository interface {
 	GetUser(ctx context.Context, field, value string) (User, error)
 	DeleteUser(ctx context.Context, id string) error
+	UpdateUser(ctx context.Context, id string, field, value string) (User, error)
 	GetUsers(ctx context.Context) ([]User, error)
 	CreateUser(ctx context.Context, username, email, id, avatar string) (User, error)
 }
+
 type User struct {
 	ID        string    `json: "id"`
 	Username  string    `json: "username" validate: "required"`
@@ -26,14 +28,14 @@ type User struct {
 }
 
 func (u *User) DeleteUser(ctx context.Context, id string) error {
-	_, span := tracer.Start(ctx, "MODELS delete user")
+	spanctx, span := tracer.Start(ctx, "MODELS delete user")
 	defer span.End()
 
-	dbctx, cancel := context.WithTimeout(context.Background(), dbtimeout)
+	dbctx, cancel := context.WithTimeout(spanctx, dbtimeout)
 	defer cancel()
 
-	query := ``
-	_, err := db.ExecContext(dbctx, query)
+	query := `DELETE from users WHERE id = $1;`
+	_, err := db.ExecContext(dbctx, query, id)
 	if err != nil {
 		return err
 	}
@@ -41,11 +43,11 @@ func (u *User) DeleteUser(ctx context.Context, id string) error {
 }
 
 func (u *User) CreateUser(ctx context.Context, username, email, id, avatar string) (User, error) {
-	_, span := tracer.Start(ctx, "MODELS create user")
+	spanctx, span := tracer.Start(ctx, "MODELS create user")
 	defer span.End()
 
 	var user User
-	dbctx, cancel := context.WithTimeout(context.Background(), dbtimeout)
+	dbctx, cancel := context.WithTimeout(spanctx, dbtimeout)
 	defer cancel()
 
 	query := `INSERT into users (id, username, email, avatar, created_at, updated_at)
@@ -68,12 +70,48 @@ func (u *User) CreateUser(ctx context.Context, username, email, id, avatar strin
 	return user, nil
 }
 
-func (u *User) GetUser(ctx context.Context, field, value string) (User, error) {
-	_, span := tracer.Start(ctx, "MODELS getuser")
+func (u *User) UpdateUser(ctx context.Context, id string, field, value string) (User, error) {
+	spanctx, span := tracer.Start(ctx, "MODELS update user")
 	defer span.End()
+
+	if field == "email" && field != "username" && field != "avatar" {
+		return User{}, fmt.Errorf("Cannot update the %s field", field)
+	}
+
 	var user User
 
-	dbctx, cancel := context.WithTimeout(context.Background(), dbtimeout)
+	dbctx, cancel := context.WithTimeout(spanctx, dbtimeout)
+	defer cancel()
+
+	query := fmt.Sprintf(`UPDATE users SET %s = $1 WHERE id = $2;`, field)
+	row := db.QueryRowContext(dbctx, query, value, id)
+
+	err := row.Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.Avatar,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+	if err != nil {
+		return User{}, nil
+	}
+
+	return user, nil
+}
+
+func (u *User) GetUser(ctx context.Context, field, value string) (User, error) {
+	spanctx, span := tracer.Start(ctx, "MODELS getuser")
+	defer span.End()
+
+	if field == "email" && field != "username" && field != "avatar" {
+		return User{}, fmt.Errorf("Cannot update the %s field", field)
+	}
+
+	var user User
+
+	dbctx, cancel := context.WithTimeout(spanctx, dbtimeout)
 	defer cancel()
 
 	query := fmt.Sprintf(`SELECT id, username, email, avatar, created_at, updated_at FROM users WHERE %s = $1;`, field)
@@ -94,13 +132,13 @@ func (u *User) GetUser(ctx context.Context, field, value string) (User, error) {
 	return user, nil
 }
 
-func (u *User) GetUsers(ctx context.Context, field, value string) ([]User, error) {
-	_, span := tracer.Start(ctx, "MODELS getusers")
+func (u *User) GetUsers(ctx context.Context) ([]User, error) {
+	spanctx, span := tracer.Start(ctx, "MODELS getusers")
 	defer span.End()
 
 	var users []User
 
-	dbctx, cancel := context.WithTimeout(context.Background(), dbtimeout)
+	dbctx, cancel := context.WithTimeout(spanctx, dbtimeout)
 	defer cancel()
 
 	query := `SELECT id, username, email, avatar, created_at, updated_at FROM users;`

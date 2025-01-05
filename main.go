@@ -13,6 +13,7 @@ import (
 	"go.uber.org/zap"
 
 	"ogugu/database"
+	"ogugu/database/cache"
 	"ogugu/docs"
 	"ogugu/models"
 	"ogugu/router"
@@ -29,16 +30,22 @@ func main() {
 	docs.SwaggerInfo.BasePath = "/v1/"
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 
-	logger, _ := zap.NewProduction()
-	db, err := database.Init("postgres", os.Getenv("DATABASE_URL"))
+	log, _ := zap.NewProduction()
+	db, err := database.Setup("postgres", os.Getenv("DATABASE_URL"))
 	if err != nil {
-		logger.Error("unable to initialize database")
+		log.Error("unable to initialize database")
+		return
+	}
+
+	_, err = cache.Setup(os.Getenv("REDIS_URL"))
+	if err != nil {
+		log.Error("unable to initialize cache store")
 		return
 	}
 
 	models.New(db)
 
-	InitServer(logger)
+	InitServer(log)
 }
 
 func InitServer(log *zap.Logger) {
