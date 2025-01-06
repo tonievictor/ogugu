@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
 	_ "github.com/lib/pq"
+	"github.com/redis/go-redis/v9"
 	"github.com/tonievictor/dotenv"
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
@@ -15,7 +17,6 @@ import (
 	"ogugu/database"
 	"ogugu/database/cache"
 	"ogugu/docs"
-	"ogugu/models"
 	"ogugu/router"
 	"ogugu/telemetry"
 )
@@ -36,20 +37,17 @@ func main() {
 		log.Error("unable to initialize database")
 		return
 	}
-
-	_, err = cache.Setup(os.Getenv("REDIS_URL"))
+	rds, err := cache.Setup(os.Getenv("REDIS_URL"))
 	if err != nil {
 		log.Error("unable to initialize cache store")
 		return
 	}
 
-	models.New(db)
-
-	InitServer(log)
+	InitServer(db, rds, log)
 }
 
-func InitServer(log *zap.Logger) {
-	r := router.Routes(log)
+func InitServer(db *sql.DB, rds *redis.Client, log *zap.Logger) {
+	r := router.Routes(db, rds, log)
 
 	log.Info("Server is running on port 8080")
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)

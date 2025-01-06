@@ -1,15 +1,17 @@
 package router
 
 import (
+	"database/sql"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/redis/go-redis/v9"
 	"github.com/swaggo/http-swagger/v2"
 	"go.uber.org/zap"
 )
 
-func Routes(logger *zap.Logger) http.Handler {
+func Routes(db *sql.DB, cache *redis.Client, logger *zap.Logger) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 
