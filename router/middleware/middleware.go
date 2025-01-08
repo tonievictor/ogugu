@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
+	"ogugu/controllers"
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 
@@ -24,7 +25,6 @@ type Session struct {
 
 var tracer = otel.Tracer("middleware")
 
-const AuthSession = "AuthSession"
 
 func IsAuthenticated(next http.HandlerFunc, cache *redis.Client, log *zap.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -61,7 +61,7 @@ func IsAuthenticated(next http.HandlerFunc, cache *redis.Client, log *zap.Logger
 			return
 		}
 
-		ctx := context.WithValue(spanctx, AuthSession, session)
+		ctx := context.WithValue(spanctx, controllers.AuthSession, session)
 		req := r.WithContext(ctx)
 
 		next(w, req)
