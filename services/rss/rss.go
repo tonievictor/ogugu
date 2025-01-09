@@ -1,4 +1,4 @@
-package services
+package rss
 
 import (
 	"context"
@@ -6,21 +6,27 @@ import (
 	"fmt"
 	"time"
 
+	"go.opentelemetry.io/otel"
+
 	"ogugu/models"
 )
+
+const dbtimeout = time.Second * 3
+
+var tracer = otel.Tracer("RssFeed Service")
 
 type RssService struct {
 	db *sql.DB
 }
 
-func NewRssService(db *sql.DB) *RssService {
+func New(db *sql.DB) *RssService {
 	return &RssService{
 		db: db,
 	}
 }
 
-func (r *RssService) DeleteRss(ctx context.Context, id string) error {
-	spanctx, span := tracer.Start(ctx, "Delete RssFeed by ID")
+func (r *RssService) Delete(ctx context.Context, id string) error {
+	spanctx, span := tracer.Start(ctx, "Deleting an RssFeed by ID")
 	defer span.End()
 
 	dbctx, cancel := context.WithTimeout(spanctx, dbtimeout)
@@ -34,8 +40,8 @@ func (r *RssService) DeleteRss(ctx context.Context, id string) error {
 	return nil
 }
 
-func (r *RssService) UpdateRss(ctx context.Context, id, field, value string) (models.RssFeed, error) {
-	spanctx, span := tracer.Start(ctx, "Update RssFeed Field")
+func (r *RssService) Update(ctx context.Context, id, field, value string) (models.RssFeed, error) {
+	spanctx, span := tracer.Start(ctx, "Updating An RssFeed")
 	defer span.End()
 
 	if field != "name" && field != "link" {
@@ -68,8 +74,8 @@ func (r *RssService) UpdateRss(ctx context.Context, id, field, value string) (mo
 	return rss, nil
 }
 
-func (r *RssService) GetAllRss(ctx context.Context) ([]models.RssFeed, error) {
-	spanctx, span := tracer.Start(ctx, "Get All RssFeeds")
+func (r *RssService) Fetch(ctx context.Context) ([]models.RssFeed, error) {
+	spanctx, span := tracer.Start(ctx, "Fetching All Rss Feeds")
 	defer span.End()
 
 	var allrss []models.RssFeed
@@ -101,8 +107,8 @@ func (r *RssService) GetAllRss(ctx context.Context) ([]models.RssFeed, error) {
 	return allrss, nil
 }
 
-func (r *RssService) GetRss(ctx context.Context, field, value string) (models.RssFeed, error) {
-	spanctx, span := tracer.Start(ctx, "Get RssFeed by Field")
+func (r *RssService) Find(ctx context.Context, field, value string) (models.RssFeed, error) {
+	spanctx, span := tracer.Start(ctx, "Fetching RSS Feed by Name | Link")
 	defer span.End()
 
 	if field != "name" && field != "link" {
@@ -130,8 +136,8 @@ func (r *RssService) GetRss(ctx context.Context, field, value string) (models.Rs
 	return rss, nil
 }
 
-func (r *RssService) GetRssByID(ctx context.Context, id string) (models.RssFeed, error) {
-	spanctx, span := tracer.Start(ctx, "Get RssFeed by ID")
+func (r *RssService) FindByID(ctx context.Context, id string) (models.RssFeed, error) {
+	spanctx, span := tracer.Start(ctx, "Fetching RSS Feed by ID")
 	defer span.End()
 
 	var rss models.RssFeed
@@ -155,8 +161,8 @@ func (r *RssService) GetRssByID(ctx context.Context, id string) (models.RssFeed,
 	return rss, nil
 }
 
-func (r *RssService) CreateRSS(ctx context.Context, name, link, id string) (models.RssFeed, error) {
-	spanctx, span := tracer.Start(ctx, "Create RssFeed")
+func (r *RssService) Create(ctx context.Context, name, link, id string) (models.RssFeed, error) {
+	spanctx, span := tracer.Start(ctx, "Inserting RSS Feed to DB")
 	defer span.End()
 
 	var rss models.RssFeed

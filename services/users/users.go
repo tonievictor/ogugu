@@ -1,23 +1,29 @@
-package services
+package users
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
 	"time"
+
+	"go.opentelemetry.io/otel"
+
 	"ogugu/models"
 )
+
+const dbtimeout = time.Second * 3
+
+var tracer = otel.Tracer("User Service")
 
 type UserService struct {
 	db *sql.DB
 }
 
-func NewUserService(db *sql.DB) *UserService {
+func New(db *sql.DB) *UserService {
 	return &UserService{
 		db: db,
 	}
 }
-
 
 func (u *UserService) GetUserByID(ctx context.Context, id string) (models.User, error) {
 	spanctx, span := tracer.Start(ctx, "MODELS getuser by id")
