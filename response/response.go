@@ -6,11 +6,17 @@ import (
 	"net/http"
 
 	"go.uber.org/zap"
+	"ogugu/models"
 )
 
 type Response struct {
 	Message string      `json:"message"`
 	Data    interface{} `json:"data,omitempty"`
+}
+
+type RssFeed struct {
+	Message string
+	Data    models.RssFeed
 }
 
 func Error(w http.ResponseWriter, message string, status int, data interface{}, log *zap.Logger) {

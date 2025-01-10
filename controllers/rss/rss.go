@@ -49,7 +49,7 @@ type CreateRssBody struct {
 // @Accept  json
 // @Produce  json
 // @Param body body CreateRssBody true "Create a new RSS feed"
-// @Success 201 {object} response.Response "RSS Feed created"
+// @Success 201 {object} response.RssFeed "RSS Feed created"
 // @Failure 400 {object} response.Response "Invalid request body"
 // @Failure 500 {object} response.Response "Unable to create feed"
 // @Router /feed [post]

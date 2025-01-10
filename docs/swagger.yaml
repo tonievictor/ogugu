@@ -1,4 +1,79 @@
+definitions:
+  models.User:
+    properties:
+      avatar:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    required:
+    - avatar
+    - created_at
+    - id
+    - updated_at
+    - username
+    type: object
+  response.Response:
+    properties:
+      data: {}
+      message:
+        type: string
+    type: object
+  response.UserRes:
+    properties:
+      data:
+        $ref: '#/definitions/models.User'
+      message:
+        type: string
+    type: object
+  rss.CreateRssBody:
+    properties:
+      link:
+        type: string
+      name:
+        type: string
+    required:
+    - link
+    - name
+    type: object
 info:
   contact: {}
-paths: {}
+paths:
+  /feed:
+    post:
+      consumes:
+      - application/json
+      description: Create a new RSS feed by providing the feed's name and link.
+      parameters:
+      - description: Create a new RSS feed
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/rss.CreateRssBody'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: RSS Feed created
+          schema:
+            $ref: '#/definitions/response.UserRes'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Unable to create feed
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Create a new RSS feed
+      tags:
+      - RSS
 swagger: "2.0"

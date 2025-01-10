@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"database/sql"
 	"net/http"
 	"os"
@@ -34,7 +35,7 @@ func main() {
 	log, _ := zap.NewProduction()
 	db, err := database.Setup("postgres", os.Getenv("DATABASE_URL"))
 	if err != nil {
-		log.Error("unable to initialize database")
+		log.Error("unable to initialize database", zap.String("error", err.Error()))
 		return
 	}
 	rds, err := cache.Setup(os.Getenv("REDIS_URL"))
@@ -55,6 +56,11 @@ func InitServer(db *sql.DB, rds *redis.Client, log *zap.Logger) {
 
 	// set up tracing
 	exp, err := telemetry.NewConsoleExporter()
+	// exp, err := telemetry.NewOtlpExporter(ctx) to be used in production setting
+	if err != nil {
+		fmt.Println("Something is wrong haha")
+		return
+	}
 	tp := telemetry.NewTraceProvider(exp)
 	defer func() { _ = tp.Shutdown(ctx) }()
 	otel.SetTracerProvider(tp)
