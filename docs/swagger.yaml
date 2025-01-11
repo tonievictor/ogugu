@@ -1,24 +1,20 @@
 definitions:
-  models.User:
+  models.RssFeed:
     properties:
-      avatar:
-        type: string
       created_at:
-        type: string
-      email:
         type: string
       id:
         type: string
+      link:
+        type: string
+      name:
+        type: string
       updated_at:
         type: string
-      username:
-        type: string
     required:
-    - avatar
-    - created_at
     - id
-    - updated_at
-    - username
+    - link
+    - name
     type: object
   response.Response:
     properties:
@@ -26,10 +22,19 @@ definitions:
       message:
         type: string
     type: object
-  response.UserRes:
+  response.RssFeed:
     properties:
       data:
-        $ref: '#/definitions/models.User'
+        $ref: '#/definitions/models.RssFeed'
+      message:
+        type: string
+    type: object
+  response.RssFeeds:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.RssFeed'
+        type: array
       message:
         type: string
     type: object
@@ -47,6 +52,32 @@ info:
   contact: {}
 paths:
   /feed:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all RSS Feeds in the database.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: RSS Feeds found
+          schema:
+            $ref: '#/definitions/response.RssFeeds'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: RSS Feed not found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Find all RSS feeds
+      tags:
+      - RSS
     post:
       consumes:
       - application/json
@@ -64,7 +95,7 @@ paths:
         "201":
           description: RSS Feed created
           schema:
-            $ref: '#/definitions/response.UserRes'
+            $ref: '#/definitions/response.RssFeed'
         "400":
           description: Invalid request body
           schema:
@@ -74,6 +105,71 @@ paths:
           schema:
             $ref: '#/definitions/response.Response'
       summary: Create a new RSS feed
+      tags:
+      - RSS
+  /feed/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an existing RSS feed using its unique ID.
+      parameters:
+      - description: ID of the RSS feed to retrieve
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: RSS Feed deleted
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: RSS Feed not found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Delete an RSS feed by its ID
+      tags:
+      - RSS
+    get:
+      consumes:
+      - application/json
+      description: Retrieve an existing RSS feed using its unique ID.
+      parameters:
+      - description: ID of the RSS feed to retrieve
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: RSS Feed found
+          schema:
+            $ref: '#/definitions/response.RssFeed'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: RSS Feed not found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Find an RSS feed by its ID
       tags:
       - RSS
 swagger: "2.0"

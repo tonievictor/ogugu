@@ -29,6 +29,9 @@ func Routes(db *sql.DB, cache *redis.Client, logger *zap.Logger) http.Handler {
 
 	rc := rsscontroller.New(cache, logger, rssservice.New(db))
 	v1.Post("/feed", rc.CreateRss)
+	v1.Get("/feed/{id}", rc.FindRssByID)
+	v1.Get("/feed", rc.Fetch)
+	v1.Delete("/feed/{id}", rc.DeleteRssByID)
 
 	r.Mount("/v1", v1)
 	return r

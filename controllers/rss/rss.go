@@ -37,6 +37,90 @@ func New(
 	}
 }
 
+// Fetch godoc
+// @Summary Find all RSS feeds
+// @Description Retrieve all RSS Feeds in the database.
+// @Tags RSS
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} response.RssFeeds "RSS Feeds found"
+// @Failure 400 {object} response.Response "Invalid request"
+// @Failure 404 {object} response.Response "RSS Feed not found"
+// @Failure 500 {object} response.Response "Internal server error"
+// @Router /feed [get]
+func (rc *RssController) Fetch(w http.ResponseWriter, r *http.Request) {
+	spanctx, span := tracer.Start(r.Context(), "Find RssFeedByID")
+	defer span.End()
+
+	feed, err := rc.rss.Fetch(spanctx)
+	if err != nil {
+		response.Error(w, "Resource not found", http.StatusNotFound, err.Error(), rc.log)
+		return
+	}
+
+	response.Success(w, "Resource found", http.StatusFound, feed, rc.log)
+}
+
+// DeleteRssByID godoc
+// @Summary Delete an RSS feed by its ID
+// @Description Delete an existing RSS feed using its unique ID.
+// @Tags RSS
+// @Accept  json
+// @Produce  json
+// @Param id path string true "ID of the RSS feed to retrieve"
+// @Success 204 {object} response.Response "RSS Feed deleted"
+// @Failure 400 {object} response.Response "Invalid request"
+// @Failure 404 {object} response.Response "RSS Feed not found"
+// @Failure 500 {object} response.Response "Internal server error"
+// @Router /feed/{id} [delete]
+func (rc *RssController) DeleteRssByID(w http.ResponseWriter, r *http.Request) {
+	spanctx, span := tracer.Start(r.Context(), "Delete Rss by ID")
+	defer span.End()
+
+	id := r.PathValue("id")
+	// DeleteByID
+	_, err := rc.rss.FindByID(spanctx, id)
+	if err != nil {
+		response.Error(w, "Resource not found", http.StatusNotFound, err.Error(), rc.log)
+		return
+	}
+
+	err = rc.rss.DeleteByID(spanctx, id)
+	if err != nil {
+		msg := "An error occured while deleting the resource"
+		response.Error(w, msg, http.StatusInternalServerError, err.Error(), rc.log)
+		return
+	}
+
+	response.Success(w, "Resource deleted successfully", http.StatusNoContent, "", rc.log)
+}
+
+// FindRssByID godoc
+// @Summary Find an RSS feed by its ID
+// @Description Retrieve an existing RSS feed using its unique ID.
+// @Tags RSS
+// @Accept  json
+// @Produce  json
+// @Param id path string true "ID of the RSS feed to retrieve"
+// @Success 200 {object} response.RssFeed "RSS Feed found"
+// @Failure 400 {object} response.Response "Invalid request"
+// @Failure 404 {object} response.Response "RSS Feed not found"
+// @Failure 500 {object} response.Response "Internal server error"
+// @Router /feed/{id} [get]
+func (rc *RssController) FindRssByID(w http.ResponseWriter, r *http.Request) {
+	spanctx, span := tracer.Start(r.Context(), "Find RssFeedByID")
+	defer span.End()
+
+	id := r.PathValue("id")
+	feed, err := rc.rss.FindByID(spanctx, id)
+	if err != nil {
+		response.Error(w, "Resource not found", http.StatusNotFound, err.Error(), rc.log)
+		return
+	}
+
+	response.Success(w, "Resource found", http.StatusFound, feed, rc.log)
+}
+
 type CreateRssBody struct {
 	Name string `json:"name" validate:"required"`
 	Link string `json:"link" validate:"required"`
@@ -88,5 +172,4 @@ func (rc *RssController) CreateRss(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.Success(w, "Rss Feed created", http.StatusCreated, feed, rc.log)
-	return
 }

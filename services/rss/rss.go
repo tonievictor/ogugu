@@ -25,7 +25,7 @@ func New(db *sql.DB) *RssService {
 	}
 }
 
-func (r *RssService) Delete(ctx context.Context, id string) error {
+func (r *RssService) DeleteByID(ctx context.Context, id string) error {
 	spanctx, span := tracer.Start(ctx, "Deleting an RssFeed by ID")
 	defer span.End()
 

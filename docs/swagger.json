@@ -5,6 +5,45 @@
     },
     "paths": {
         "/feed": {
+            "get": {
+                "description": "Retrieve all RSS Feeds in the database.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "RSS"
+                ],
+                "summary": "Find all RSS feeds",
+                "responses": {
+                    "200": {
+                        "description": "RSS Feeds found",
+                        "schema": {
+                            "$ref": "#/definitions/response.RssFeeds"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "RSS Feed not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Create a new RSS feed by providing the feed's name and link.",
                 "consumes": [
@@ -32,7 +71,7 @@
                     "201": {
                         "description": "RSS Feed created",
                         "schema": {
-                            "$ref": "#/definitions/response.UserRes"
+                            "$ref": "#/definitions/response.RssFeed"
                         }
                     },
                     "400": {
@@ -49,35 +88,128 @@
                     }
                 }
             }
+        },
+        "/feed/{id}": {
+            "get": {
+                "description": "Retrieve an existing RSS feed using its unique ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "RSS"
+                ],
+                "summary": "Find an RSS feed by its ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of the RSS feed to retrieve",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "RSS Feed found",
+                        "schema": {
+                            "$ref": "#/definitions/response.RssFeed"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "RSS Feed not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete an existing RSS feed using its unique ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "RSS"
+                ],
+                "summary": "Delete an RSS feed by its ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of the RSS feed to retrieve",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "RSS Feed deleted",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "RSS Feed not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
-        "models.User": {
+        "models.RssFeed": {
             "type": "object",
             "required": [
-                "avatar",
-                "created_at",
                 "id",
-                "updated_at",
-                "username"
+                "link",
+                "name"
             ],
             "properties": {
-                "avatar": {
-                    "type": "string"
-                },
                 "created_at": {
-                    "type": "string"
-                },
-                "email": {
                     "type": "string"
                 },
                 "id": {
                     "type": "string"
                 },
-                "updated_at": {
+                "link": {
                     "type": "string"
                 },
-                "username": {
+                "name": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }
@@ -91,11 +223,25 @@
                 }
             }
         },
-        "response.UserRes": {
+        "response.RssFeed": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/models.User"
+                    "$ref": "#/definitions/models.RssFeed"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.RssFeeds": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.RssFeed"
+                    }
                 },
                 "message": {
                     "type": "string"
