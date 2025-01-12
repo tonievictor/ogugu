@@ -13,7 +13,7 @@ import (
 
 func TestRssService(t *testing.T) {
 	dotenv.Config("../../.env")
-	db, err := database.Setup("postgres", os.Getenv("DATABASE_TEST_URL"))
+	db, err := database.Setup("postgres", os.Getenv("DATABASE_URL"))
 	if err != nil {
 		t.Errorf("There was an error setting up the database. Error: %s", err.Error())
 		return
@@ -21,13 +21,6 @@ func TestRssService(t *testing.T) {
 
 	rs := New(db)
 	id := "uniqueidhaha"
-
-	t.Run("delete rss", func(t *testing.T) {
-		err := rs.DeleteByID(context.Background(), id)
-		if err != nil {
-			t.Errorf("Expected no error when deleting a valid row with a valid id, but got: %v", err)
-		}
-	})
 
 	t.Run("test create rss", func(t *testing.T) {
 		_, err := rs.Create(context.Background(), "link", "name", id)
@@ -39,7 +32,7 @@ func TestRssService(t *testing.T) {
 	t.Run("test create rss", func(t *testing.T) {
 		_, err := rs.Create(context.Background(), "link", "name", id)
 		if err == nil {
-			t.Error("Expected error when creating RSS with existing information, but no error was returned.")
+			t.Error("Expected error when creating RSS with conflicting information, but no error was returned.")
 		}
 	})
 

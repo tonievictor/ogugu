@@ -52,7 +52,7 @@ func (u *UserService) GetUserByID(ctx context.Context, id string) (models.User, 
 	return user, nil
 }
 
-func (u *UserService) DeleteUser(ctx context.Context, id string) error {
+func (u *UserService) DeleteUserByID(ctx context.Context, id string) error {
 	spanctx, span := tracer.Start(ctx, "MODELS delete user")
 	defer span.End()
 

@@ -24,22 +24,6 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
-  # not yet sure if this is a good approach but who's watching?
-  ogugu.test.db:
-    image: "postgres:16-alpine"
-    container_name: ogugu.test.db
-    restart: always
-    shm_size: 128mb
-    environment:
-      POSTGRES_USER: ${DB_TEST_USER}
-      POSTGRES_PASSWORD: ${DB_TEST_PASSWORD}
-      POSTGRES_DB: ${DB_TEST_NAME}
-    ports:
-      - 5442:5432
-    volumes:
-      - postgrestest-data:/var/lib/postgresqltest/data
-
 volumes:
   postgres-data:
   redis-data:
-  postgrestest-data:
