@@ -5,23 +5,20 @@ import (
 	"testing"
 
 	_ "github.com/lib/pq"
+	"github.com/stretchr/testify/require"
 	"github.com/tonievictor/dotenv"
 )
 
 func TestDB(t *testing.T) {
 	t.Run("incorrect db credentials", func(t *testing.T) {
 		_, err := New("postgres", "randomstring")
-		if err == nil {
-			t.Error("incorrect db credentials should fail")
-		}
+		require.Error(t, err)
 	})
 
 	dotenv.Config("../.env")
 
 	t.Run("correct db credentials", func(t *testing.T) {
 		_, err := New("postgres", os.Getenv("DATABASE_URL"))
-		if err != nil {
-			t.Error("correct db credentials should pass")
-		}
+		require.NoError(t, err)
 	})
 }
