@@ -1,8 +1,10 @@
 package database
 
-import "database/sql"
+import (
+	"database/sql"
+)
 
-func Setup(driver, url string) (*sql.DB, error) {
+func New(driver, url string) (*sql.DB, error) {
 	db, err := sql.Open(driver, url)
 	if err != nil {
 		return nil, err

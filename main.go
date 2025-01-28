@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"database/sql"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -33,7 +33,7 @@ func main() {
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 
 	log, _ := zap.NewProduction()
-	db, err := database.Setup("postgres", os.Getenv("DATABASE_URL"))
+	db, err := database.New("postgres", os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Error("unable to initialize database", zap.String("error", err.Error()))
 		return

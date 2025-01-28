@@ -2,22 +2,14 @@ package rss
 
 import (
 	"context"
-	"os"
 	"testing"
 
-	_ "github.com/lib/pq"
-	"github.com/tonievictor/dotenv"
-
-	"ogugu/database"
+	"ogugu/services"
 )
 
 func TestRssService(t *testing.T) {
-	dotenv.Config("../../.env")
-	db, err := database.Setup("postgres", os.Getenv("DATABASE_URL"))
-	if err != nil {
-		t.Errorf("There was an error setting up the database. Error: %s", err.Error())
-		return
-	}
+	db, tearDownFunc := services.SetupTestDB(t)
+	defer tearDownFunc()
 
 	rs := New(db)
 	id := "uniqueidhaha"
