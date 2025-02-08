@@ -2,7 +2,6 @@ package response
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"go.uber.org/zap"
@@ -27,7 +26,6 @@ type RssFeeds struct {
 
 func Error(w http.ResponseWriter, message string, status int, data interface{}, log *zap.Logger) {
 	log.Error("RESPONSE", zap.String("message", message))
-	fmt.Println(data)
 	res := Response{
 		Message: message,
 		Data:    data,

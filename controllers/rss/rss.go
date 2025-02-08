@@ -58,7 +58,7 @@ func (rc *RssController) Fetch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.Success(w, "Resource found", http.StatusFound, feed, rc.log)
+	response.Success(w, "Resources found", http.StatusOK, feed, rc.log)
 }
 
 // DeleteRssByID godoc
@@ -118,7 +118,7 @@ func (rc *RssController) FindRssByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.Success(w, "Resource found", http.StatusFound, feed, rc.log)
+	response.Success(w, "Resource found", http.StatusOK, feed, rc.log)
 }
 
 type CreateRssBody struct {
