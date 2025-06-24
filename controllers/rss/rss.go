@@ -12,8 +12,9 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 
-	"ogugu/response"
-	feed "ogugu/services/rss"
+	"ogugu/controllers/common/response"
+	"ogugu/models"
+	"ogugu/services/rss"
 )
 
 var (
@@ -22,22 +23,20 @@ var (
 )
 
 type RssController struct {
-	cache *redis.Client
-	log   *zap.Logger
-	rss   *feed.RssService
+	cache      *redis.Client
+	log        *zap.Logger
+	rssService *rss.RssService
 }
 
-func New(
-	cache *redis.Client, log *zap.Logger, rss *feed.RssService,
-) *RssController {
+func New(c *redis.Client, l *zap.Logger, r *rss.RssService) *RssController {
 	return &RssController{
-		cache: cache,
-		log:   log,
-		rss:   rss,
+		cache:      c,
+		log:        l,
+		rssService: r,
 	}
 }
 
-// Fetch godoc
+// Fetch
 // @Summary Find all RSS feeds
 // @Description Retrieve all RSS Feeds in the database.
 // @Tags RSS
@@ -52,7 +51,7 @@ func (rc *RssController) Fetch(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "Find RssFeedByID")
 	defer span.End()
 
-	feed, err := rc.rss.Fetch(spanctx)
+	feed, err := rc.rssService.Fetch(spanctx)
 	if err != nil {
 		response.Error(w, "Resource not found", http.StatusNotFound, err.Error(), rc.log)
 		return
@@ -84,13 +83,13 @@ func (rc *RssController) DeleteRssByID(w http.ResponseWriter, r *http.Request) {
 
 	id := r.PathValue("id")
 	// DeleteByID
-	_, err := rc.rss.FindByID(spanctx, id)
+	_, err := rc.rssService.FindByID(spanctx, id)
 	if err != nil {
 		response.Error(w, "Resource not found", http.StatusNotFound, err.Error(), rc.log)
 		return
 	}
 
-	err = rc.rss.DeleteByID(spanctx, id)
+	err = rc.rssService.DeleteByID(spanctx, id)
 	if err != nil {
 		msg := "An error occured while deleting the resource"
 		response.Error(w, msg, http.StatusInternalServerError, err.Error(), rc.log)
@@ -117,7 +116,7 @@ func (rc *RssController) FindRssByID(w http.ResponseWriter, r *http.Request) {
 	defer span.End()
 
 	id := r.PathValue("id")
-	feed, err := rc.rss.FindByID(spanctx, id)
+	feed, err := rc.rssService.FindByID(spanctx, id)
 	if err != nil {
 		response.Error(w, "Resource not found", http.StatusNotFound, err.Error(), rc.log)
 		return
@@ -126,18 +125,13 @@ func (rc *RssController) FindRssByID(w http.ResponseWriter, r *http.Request) {
 	response.Success(w, "Resource found", http.StatusOK, feed, rc.log)
 }
 
-type CreateRssBody struct {
-	Name string `json:"name" validate:"required"`
-	Link string `json:"link" validate:"required"`
-}
-
 // CreateRss godoc
 // @Summary Create a new RSS feed
 // @Description Create a new RSS feed by providing the feed's name and link.
 // @Tags RSS
 // @Accept  json
 // @Produce  json
-// @Param body body CreateRssBody true "Create a new RSS feed"
+// @Param body body models.CreateRssBody true "Create a new RSS feed"
 // @Success 201 {object} response.RssFeed "RSS Feed created"
 // @Failure 400 {object} response.Response "Invalid request body"
 // @Failure 500 {object} response.Response "Unable to create feed"
@@ -152,7 +146,7 @@ func (rc *RssController) CreateRss(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var body CreateRssBody
+	var body models.CreateRssBody
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
 		err := errors.New("The request body is malformed or not valid JSON")
@@ -166,7 +160,7 @@ func (rc *RssController) CreateRss(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := ulid.Make().String()
-	feed, err := rc.rss.Create(spanctx, body.Name, body.Link, id)
+	feed, err := rc.rssService.Create(spanctx, id, body)
 	if err != nil {
 		s := http.StatusInternalServerError
 		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {

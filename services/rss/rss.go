@@ -161,7 +161,7 @@ func (r *RssService) FindByID(ctx context.Context, id string) (models.RssFeed, e
 	return rss, nil
 }
 
-func (r *RssService) Create(ctx context.Context, name, link, id string) (models.RssFeed, error) {
+func (r *RssService) Create(ctx context.Context, id string, body models.CreateRssBody) (models.RssFeed, error) {
 	spanctx, span := tracer.Start(ctx, "Inserting RSS Feed to DB")
 	defer span.End()
 
@@ -175,7 +175,7 @@ func (r *RssService) Create(ctx context.Context, name, link, id string) (models.
 		VALUES ($1, $2, $3, $4, $5)
 		RETURNING id, name, link, created_at, updated_at;
 	`
-	row := r.db.QueryRowContext(dbctx, query, id, name, link, time.Now(), time.Now())
+	row := r.db.QueryRowContext(dbctx, query, id, body.Name, body.Link, time.Now(), time.Now())
 	err := row.Scan(
 		&rss.ID,
 		&rss.Name,
