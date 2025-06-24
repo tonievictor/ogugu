@@ -8,7 +8,8 @@ import (
 	"os/signal"
 	"time"
 
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v5/stdlib"
+
 	"github.com/redis/go-redis/v9"
 	"github.com/tonievictor/dotenv"
 	// "go.opentelemetry.io/otel"
@@ -32,7 +33,7 @@ func main() {
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 
 	log, _ := zap.NewProduction()
-	db, err := database.New("postgres", os.Getenv("DATABASE_URL"))
+	db, err := database.New("pgx", os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Error("unable to initialize database", zap.String("error", err.Error()))
 		return

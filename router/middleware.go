@@ -3,7 +3,6 @@ package router
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"strings"
 	"time"
@@ -12,7 +11,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 
-	"ogugu/response"
+	"ogugu/controllers/common/response"
 )
 
 type Session struct {
@@ -34,31 +33,36 @@ func IsAuthenticated(cache *redis.Client, log *zap.Logger) func(next http.Handle
 
 			auth := r.Header.Get("Authorization")
 			if !strings.HasPrefix(auth, "Bearer ") {
-				response.Error(w, "You are not logged in", http.StatusUnauthorized, errors.New("session id not found"), log)
+				log.Error("session id not found in authorization header")
+				response.Error(w, "You are not logged in", http.StatusUnauthorized, log)
 				return
 			}
 
 			token := strings.TrimPrefix(auth, "Bearer ")
 			if token == "" {
-				response.Error(w, "You are not logged in", http.StatusUnauthorized, errors.New("session id not found"), log)
+				log.Error("session id not found in suffix to Bearer")
+				response.Error(w, "You are not logged in", http.StatusUnauthorized, log)
 				return
 			}
 
 			value, err := cache.Get(context.Background(), token).Result()
 			if err != nil && err != redis.Nil {
-				response.Error(w, "You are not logged in", http.StatusUnauthorized, errors.New("invalid session token"), log)
+				log.Error("provided session id does not exist in cache", zap.Error(err))
+				response.Error(w, "You are not logged in", http.StatusUnauthorized, log)
 				return
 			}
 
 			var session Session
 			err = json.Unmarshal([]byte(value), &session)
 			if err != nil {
-				response.Error(w, "Invalid token", http.StatusInternalServerError, errors.New("Could not validate auth token"), log)
+				log.Error("session token cannot be validated into a session", zap.Error(err))
+				response.Error(w, "Invalid token", http.StatusInternalServerError, log)
 				return
 			}
 
 			if session.ExpiryTime.Before(time.Now()) {
-				response.Error(w, "You are not logged in", http.StatusUnauthorized, errors.New("invalid session token"), log)
+				log.Error("provided session token has expired")
+				response.Error(w, "You are not logged in", http.StatusUnauthorized, log)
 				return
 			}
 

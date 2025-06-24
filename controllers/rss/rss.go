@@ -2,16 +2,14 @@ package rss
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
-	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/oklog/ulid/v2"
-	"github.com/redis/go-redis/v9"
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 
+	"ogugu/controllers/common/pgerrors"
 	"ogugu/controllers/common/response"
 	"ogugu/models"
 	"ogugu/services/rss"
@@ -23,14 +21,12 @@ var (
 )
 
 type RssController struct {
-	cache      *redis.Client
 	log        *zap.Logger
 	rssService *rss.RssService
 }
 
-func New(c *redis.Client, l *zap.Logger, r *rss.RssService) *RssController {
+func New(l *zap.Logger, r *rss.RssService) *RssController {
 	return &RssController{
-		cache:      c,
 		log:        l,
 		rssService: r,
 	}
@@ -53,7 +49,9 @@ func (rc *RssController) Fetch(w http.ResponseWriter, r *http.Request) {
 
 	feed, err := rc.rssService.Fetch(spanctx)
 	if err != nil {
-		response.Error(w, "Resource not found", http.StatusNotFound, err.Error(), rc.log)
+		rc.log.Error("An error occured while fetching all rss entries", zap.Error(err))
+		status, message := pgerrors.Details(err)
+		response.Error(w, message, status, rc.log)
 		return
 	}
 
@@ -85,14 +83,17 @@ func (rc *RssController) DeleteRssByID(w http.ResponseWriter, r *http.Request) {
 	// DeleteByID
 	_, err := rc.rssService.FindByID(spanctx, id)
 	if err != nil {
-		response.Error(w, "Resource not found", http.StatusNotFound, err.Error(), rc.log)
+		rc.log.Error("An error occured while deleting an rss entry", zap.String("id", id), zap.Error(err))
+		status, message := pgerrors.Details(err)
+		response.Error(w, message, status, rc.log)
 		return
 	}
 
 	err = rc.rssService.DeleteByID(spanctx, id)
 	if err != nil {
-		msg := "An error occured while deleting the resource"
-		response.Error(w, msg, http.StatusInternalServerError, err.Error(), rc.log)
+		rc.log.Error("An error occured while deleting an rss entry", zap.String("id", id), zap.Error(err))
+		status, message := pgerrors.Details(err)
+		response.Error(w, message, status, rc.log)
 		return
 	}
 
@@ -118,7 +119,9 @@ func (rc *RssController) FindRssByID(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	feed, err := rc.rssService.FindByID(spanctx, id)
 	if err != nil {
-		response.Error(w, "Resource not found", http.StatusNotFound, err.Error(), rc.log)
+		rc.log.Error("resource not found", zap.String("id", id), zap.Error(err))
+		status, message := pgerrors.Details(err)
+		response.Error(w, message, status, rc.log)
 		return
 	}
 
@@ -141,32 +144,33 @@ func (rc *RssController) CreateRss(w http.ResponseWriter, r *http.Request) {
 	defer span.End()
 
 	if r.Body == nil {
-		err := errors.New("Request body cannot be empty")
-		response.Error(w, "Empty request body", http.StatusBadRequest, err.Error(), rc.log)
+		rc.log.Error("request body is missing")
+		response.Error(w, "Request body missing", http.StatusBadRequest, rc.log)
 		return
 	}
 
 	var body models.CreateRssBody
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
-		err := errors.New("The request body is malformed or not valid JSON")
-		response.Error(w, "Invalid request body", http.StatusBadRequest, err.Error(), rc.log)
+		rc.log.Error("invalid request body", zap.Error(err))
+		status, message := pgerrors.Details(err)
+		response.Error(w, message, status, rc.log)
 		return
 	}
 
 	if err = Validate.Struct(body); err != nil {
 		err := err.(validator.ValidationErrors)
-		response.Error(w, "Invalid request body", http.StatusBadRequest, err.Error(), rc.log)
+		rc.log.Error("request body failed some validations", zap.Error(err))
+		status, message := pgerrors.Details(err)
+		response.Error(w, message, status, rc.log)
 		return
 	}
 	id := ulid.Make().String()
 	feed, err := rc.rssService.Create(spanctx, id, body)
 	if err != nil {
-		s := http.StatusInternalServerError
-		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
-			s = http.StatusConflict
-		}
-		response.Error(w, "Unable to create feed", s, err.Error(), rc.log)
+		rc.log.Error("unable to create new rss entry", zap.Error(err))
+		status, message := pgerrors.Details(err)
+		response.Error(w, message, status, rc.log)
 		return
 	}
 

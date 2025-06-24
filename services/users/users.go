@@ -67,7 +67,7 @@ func (u *UserService) DeleteUserByID(ctx context.Context, id string) error {
 	return nil
 }
 
-func (u *UserService) CreateUser(ctx context.Context, username, email, id, avatar string) (models.User, error) {
+func (u *UserService) CreateUser(ctx context.Context, id string, body models.CreateUserBody) (models.User, error) {
 	spanctx, span := tracer.Start(ctx, "MODELS create user")
 	defer span.End()
 
@@ -79,7 +79,7 @@ func (u *UserService) CreateUser(ctx context.Context, username, email, id, avata
 						VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, username, email, avatar, created_at, updated_at;
 	`
 
-	row := u.db.QueryRowContext(dbctx, query, id, username, email, avatar, time.Now(), time.Now())
+	row := u.db.QueryRowContext(dbctx, query, id, body.Username, body.Email, body.Avatar, time.Now(), time.Now())
 	err := row.Scan(
 		&user.ID,
 		&user.Username,

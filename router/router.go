@@ -27,7 +27,7 @@ func Routes(db *sql.DB, cache *redis.Client, logger *zap.Logger) http.Handler {
 
 	v1.Get("/swagger/*", httpSwagger.Handler())
 
-	rc := rsscontroller.New(cache, logger, rssservice.New(db))
+	rc := rsscontroller.New(logger, rssservice.New(db))
 	v1.Post("/feed", rc.CreateRss)
 	v1.Get("/feed/{id}", rc.FindRssByID)
 	v1.Get("/feed", rc.Fetch)

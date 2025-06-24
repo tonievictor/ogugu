@@ -9,7 +9,7 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -43,7 +43,7 @@ func SetupTestDB(t *testing.T) (*sql.DB, func()) {
 	dbstr := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", "ogugutest", "ogugutest",
 		fmt.Sprintf("localhost:%s", port.Port()), "ogugutest")
 
-	db, err := database.New("postgres", dbstr)
+	db, err := database.New("pgx", dbstr)
 	require.NoError(t, err)
 
 	migrateDB(t, dbstr)

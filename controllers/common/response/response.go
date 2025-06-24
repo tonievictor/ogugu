@@ -24,11 +24,10 @@ type RssFeeds struct {
 	Data    []models.RssFeed
 }
 
-func Error(w http.ResponseWriter, message string, status int, data interface{}, log *zap.Logger) {
-	log.Error("RESPONSE", zap.String("message", message))
+func Error(w http.ResponseWriter, message string, status int, log *zap.Logger) {
 	res := Response{
 		Message: message,
-		Data:    data,
+		Data:    "",
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
@@ -39,7 +38,6 @@ func Error(w http.ResponseWriter, message string, status int, data interface{}, 
 }
 
 func Success(w http.ResponseWriter, message string, status int, data interface{}, log *zap.Logger) {
-	log.Info("RESPONSE", zap.String("message", message))
 	res := Response{
 		Message: message,
 		Data:    data,
