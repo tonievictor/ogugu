@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -12,14 +11,14 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/redis/go-redis/v9"
 	"github.com/tonievictor/dotenv"
-	"go.opentelemetry.io/otel"
+	// "go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 
 	"ogugu/database"
 	"ogugu/database/cache"
 	"ogugu/docs"
 	"ogugu/router"
-	"ogugu/telemetry"
+	// "ogugu/telemetry"
 )
 
 func main() {
@@ -28,7 +27,7 @@ func main() {
 	docs.SwaggerInfo.Title = "Ogugu"
 	docs.SwaggerInfo.Description = "An RSS feed reader"
 	docs.SwaggerInfo.Version = "0.1"
-	docs.SwaggerInfo.Host = "localhost:8080" // this will be dynamic
+	docs.SwaggerInfo.Host = "localhost:8080" // this should be dynamic
 	docs.SwaggerInfo.BasePath = "/v1/"
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 
@@ -55,15 +54,15 @@ func InitServer(db *sql.DB, rds *redis.Client, log *zap.Logger) {
 	defer stop()
 
 	// set up tracing
-	exp, err := telemetry.NewConsoleExporter()
+	// exp, err := telemetry.NewConsoleExporter()
 	// exp, err := telemetry.NewOtlpExporter(ctx) to be used in production setting
-	if err != nil {
-		fmt.Println("Something is wrong haha")
-		return
-	}
-	tp := telemetry.NewTraceProvider(exp)
-	defer func() { _ = tp.Shutdown(ctx) }()
-	otel.SetTracerProvider(tp)
+	// if err != nil {
+	// 	fmt.Println("Something is wrong haha")
+	// 	return
+	// }
+	// tp := telemetry.NewTraceProvider(exp)
+	// defer func() { _ = tp.Shutdown(ctx) }()
+	// otel.SetTracerProvider(tp)
 
 	server := http.Server{
 		Addr:         ":8080",
@@ -79,7 +78,7 @@ func InitServer(db *sql.DB, rds *redis.Client, log *zap.Logger) {
 	}()
 
 	select {
-	case err = <-serverErr:
+	case err := <-serverErr:
 		log.Error("API", zap.String("error", err.Error()))
 		close(serverErr)
 		return

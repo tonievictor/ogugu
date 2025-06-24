@@ -58,7 +58,12 @@ func (rc *RssController) Fetch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.Success(w, "Resources found", http.StatusOK, feed, rc.log)
+	message := "Resources Found"
+	if len(feed) < 1 {
+		message = "No resources found"
+	}
+
+	response.Success(w, message, http.StatusOK, feed, rc.log)
 }
 
 // DeleteRssByID godoc
