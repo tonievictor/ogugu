@@ -101,9 +101,7 @@ func Details(err error) (int, string) {
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
 		status := getStatusFromCode(pgErr.Code)
-		// this will be improved, we need to find a way to return friendlier error
-		// messages
-		return status, pgErr.Message
+		return status, pgErr.Detail
 	}
 
 	return vanillaErrors(err)
