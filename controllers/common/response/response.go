@@ -24,6 +24,10 @@ type User struct {
 	Data    models.User
 }
 
+type UserWithAuth struct {
+	Message string
+	Data    models.UserWithAuth
+}
 type RssFeeds struct {
 	Message string
 	Data    []models.RssFeed

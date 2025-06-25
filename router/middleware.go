@@ -12,14 +12,8 @@ import (
 	"go.uber.org/zap"
 
 	"ogugu/controllers/common/response"
+	"ogugu/models"
 )
-
-type Session struct {
-	UserID     string
-	SessionID  string
-	CreatedAt  time.Time
-	ExpiryTime time.Time
-}
 
 var tracer = otel.Tracer("middleware")
 
@@ -52,7 +46,7 @@ func IsAuthenticated(cache *redis.Client, log *zap.Logger) func(next http.Handle
 				return
 			}
 
-			var session Session
+			var session models.Session
 			err = json.Unmarshal([]byte(value), &session)
 			if err != nil {
 				log.Error("session token cannot be validated into a session", zap.Error(err))

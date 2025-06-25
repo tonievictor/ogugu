@@ -38,6 +38,7 @@ func Routes(db *sql.DB, cache *redis.Client, logger *zap.Logger) http.Handler {
 
 	ac := authcontroller.New(cache, logger, userservice.New(db), authservice.New(db))
 	v1.Post("/signup", ac.Signup)
+	v1.Post("/signin", ac.Signin)
 
 	r.Mount("/v1", v1)
 	return r

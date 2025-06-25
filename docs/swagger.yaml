@@ -42,6 +42,45 @@ definitions:
     - link
     - name
     type: object
+  models.SigninBody:
+    properties:
+      email:
+        type: string
+      password:
+        maxLength: 75
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  models.User:
+    properties:
+      avatar:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    required:
+    - avatar
+    - created_at
+    - id
+    - updated_at
+    - username
+    type: object
+  models.UserWithAuth:
+    properties:
+      auth_token:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+    type: object
   response.Response:
     properties:
       data: {}
@@ -61,6 +100,20 @@ definitions:
         items:
           $ref: '#/definitions/models.RssFeed'
         type: array
+      message:
+        type: string
+    type: object
+  response.User:
+    properties:
+      data:
+        $ref: '#/definitions/models.User'
+      message:
+        type: string
+    type: object
+  response.UserWithAuth:
+    properties:
+      data:
+        $ref: '#/definitions/models.UserWithAuth'
       message:
         type: string
     type: object
@@ -188,6 +241,36 @@ paths:
       summary: Find an RSS feed by its ID
       tags:
       - rss
+  /signin:
+    post:
+      consumes:
+      - application/json
+      description: signin to an existing account
+      parameters:
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.SigninBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.UserWithAuth'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: sign in
+      tags:
+      - account
   /signup:
     post:
       consumes:
@@ -206,7 +289,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/response.RssFeed'
+            $ref: '#/definitions/response.User'
         "400":
           description: Bad Request
           schema:

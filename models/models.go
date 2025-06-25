@@ -11,6 +11,11 @@ type User struct {
 	UpdatedAt time.Time `json:"updated_at" validate:"required"`
 }
 
+type UserWithAuth struct {
+	User      User   `json:"user"`
+	AuthToken string `json:"auth_token"`
+}
+
 type RssFeed struct {
 	ID        string    `json:"id" validate:"required"`
 	Name      string    `json:"name" validate:"required"`
@@ -31,7 +36,13 @@ type CreateUserBody struct {
 	Password string `json:"password" validate:"required,max=75"`
 }
 
-type SignInBody struct {
+type SigninBody struct {
 	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
+	Password string `json:"password" validate:"required,max=75"`
+}
+
+type Session struct {
+	UserID     string
+	CreatedAt  time.Time
+	ExpiryTime time.Time
 }

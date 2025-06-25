@@ -14,6 +14,7 @@ import (
 	"ogugu/models"
 	"ogugu/services/auth"
 	"ogugu/services/users"
+	"time"
 )
 
 var (
@@ -37,13 +38,97 @@ func New(c *redis.Client, l *zap.Logger, u *users.UserService, a *auth.AuthServi
 	}
 }
 
+// @Summary			 sign in
+// @Description  signin to an existing account
+// @Tags         account
+// @Accept       json
+// @Produce      json
+// @Param body body models.SigninBody true "body"
+// @Success 200  {object} response.UserWithAuth
+// @Failure 400  {object} response.Response
+// @Failure 500  {object} response.Response
+// @Router /signin [post]
+func (ac *AuthController) Signin(w http.ResponseWriter, r *http.Request) {
+	spanctx, span := tracer.Start(r.Context(), "Sign in")
+	defer span.End()
+
+	if r.Body == nil {
+		ac.log.Error("request body is missing")
+		response.Error(w, "Request body missing", http.StatusBadRequest, ac.log)
+		return
+	}
+
+	var body models.SigninBody
+	err := json.NewDecoder(r.Body).Decode(&body)
+	if err != nil {
+		ac.log.Error("invalid request body", zap.Error(err))
+		response.Error(w, "Incorrect or Malformed request body", http.StatusBadRequest, ac.log)
+		return
+	}
+
+	if err = Validate.Struct(body); err != nil {
+		ac.log.Error("invalid request body", zap.Error(err))
+		response.Error(w, err.Error(), http.StatusBadRequest, ac.log)
+		return
+	}
+
+	user, err := ac.userService.GetUser(spanctx, "email", body.Email)
+	if err != nil {
+		ac.log.Error("an error occured while fetching user", zap.Error(err))
+		status, _ := pgerrors.Details(err)
+		response.Error(w, "Login Failed, check credentials", status, ac.log)
+		return
+	}
+
+	hashpwd, err := ac.authService.GetPasswordWithUserID(spanctx, user.ID)
+	if err != nil {
+		ac.log.Error("an error occured while fetching user", zap.Error(err))
+		status, _ := pgerrors.Details(err)
+		response.Error(w, "Login Failed, check credentials", status, ac.log)
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(hashpwd), []byte(body.Password))
+	if err != nil {
+		ac.log.Error("password mismatch", zap.Error(err))
+		status, _ := pgerrors.Details(err)
+		response.Error(w, "Login Failed, check credentials", status, ac.log)
+		return
+	}
+
+	session, err := json.Marshal(models.Session{
+		UserID:     user.ID,
+		CreatedAt:  time.Now(),
+		ExpiryTime: time.Now().Add(time.Hour * 24 * 3),
+	})
+	if err != nil {
+		ac.log.Error("unable to marshal session", zap.Error(err))
+		response.Error(w, "Login Failed, please try again", http.StatusInternalServerError, ac.log)
+		return
+	}
+
+	sessionid := ulid.Make().String()
+	err = ac.cache.Set(spanctx, sessionid, session, time.Second*259200).Err()
+	if err != nil && err != redis.Nil {
+		ac.log.Error("unable to create session", zap.Error(err))
+		response.Error(w, "Login Failed, please try again", http.StatusInternalServerError, ac.log)
+		return
+	}
+
+	data := models.UserWithAuth{
+		User:      user,
+		AuthToken: sessionid,
+	}
+	response.Success(w, "Login Successful", http.StatusOK, data, ac.log)
+}
+
 // @Summary			 sign up
 // @Description  create a new account
 // @Tags         account
 // @Accept       json
 // @Produce      json
 // @Param body body models.CreateUserBody true "body"
-// @Success 201  {object} response.RssFeed
+// @Success 201  {object} response.User
 // @Failure 400  {object} response.Response
 // @Failure 500  {object} response.Response
 // @Router /signup [post]
