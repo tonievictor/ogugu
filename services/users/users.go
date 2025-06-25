@@ -132,7 +132,7 @@ func (u *UserService) GetUser(ctx context.Context, field, value string) (models.
 	spanctx, span := tracer.Start(ctx, "MODELS getuser")
 	defer span.End()
 
-	if field != "email" && field != "username" && field != "avatar" {
+	if field != "email" {
 		return models.User{}, fmt.Errorf("Cannot use the %s field as a key", field)
 	}
 

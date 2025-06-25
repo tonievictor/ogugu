@@ -11,8 +11,8 @@ import (
 )
 
 func TestUserService(t *testing.T) {
-	db, tearDownFunc := services.SetupTestDB(t)
-	defer tearDownFunc()
+	db, teardown := services.SetupTestDB(t)
+	defer teardown()
 
 	us := New(db) // us -> user service
 	id := "uniqueidhaha"

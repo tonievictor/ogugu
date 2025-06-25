@@ -57,9 +57,8 @@ func SetupTestDB(t *testing.T) (*sql.DB, func()) {
 func migrateDB(t *testing.T, dbconnstr string) {
 	// magic file path, not good at all. will update
 	filepath := "file:///home/victor/dev/projects/ogugu/migrations"
-	m, err := migrate.New(
-		filepath,
-		dbconnstr)
+	m, err := migrate.New(filepath, dbconnstr)
+	defer m.Close()
 
 	require.NoError(t, err)
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {

@@ -11,8 +11,8 @@ import (
 )
 
 func TestRssService(t *testing.T) {
-	db, tearDownFunc := services.SetupTestDB(t)
-	defer tearDownFunc()
+	db, teardown := services.SetupTestDB(t)
+	defer teardown()
 
 	rs := New(db)
 	id := "uniqueidhaha"
