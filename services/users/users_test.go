@@ -28,6 +28,22 @@ func TestUserService(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("create user", func(t *testing.T) {
+		body := models.CreateUserBody{
+			Username: "testusername",
+			Email:    "test@random.username",
+			Avatar:   "randomavatar",
+			Password: "password",
+		}
+		_, err := us.CreateUser(context.Background(), id, body)
+		require.Error(t, err)
+	})
+
+	t.Run("get user with auth", func(t *testing.T) {
+		_, _, err := us.GetUserAuth(context.Background(), "test@random.username")
+		require.Error(t, err)
+	})
+
 	t.Run("get user by id", func(t *testing.T) {
 		_, err := us.GetUserByID(context.Background(), id)
 		require.NoError(t, err)

@@ -36,7 +36,7 @@ func (a *AuthService) CreateAuth(ctx context.Context, userId, password string) e
 	return err
 }
 
-func (a *AuthService) GetPassWordWithUserID(ctx context.Context, userId string) (string, error) {
+func (a *AuthService) GetPasswordWithUserID(ctx context.Context, userId string) (string, error) {
 	spanctx, span := tracer.Start(ctx, "getting an auth entry")
 	defer span.End()
 
