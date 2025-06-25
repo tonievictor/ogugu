@@ -153,18 +153,16 @@ func (rc *RssController) CreateRss(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
 		rc.log.Error("invalid request body", zap.Error(err))
-		status, message := pgerrors.Details(err)
-		response.Error(w, message, status, rc.log)
+		response.Error(w, "Incorrect or Malformed request body", http.StatusBadRequest, rc.log)
 		return
 	}
 
 	if err = Validate.Struct(body); err != nil {
-		err := err.(validator.ValidationErrors)
 		rc.log.Error("request body failed some validations", zap.Error(err))
-		status, message := pgerrors.Details(err)
-		response.Error(w, message, status, rc.log)
+		response.Error(w, err.Error(), http.StatusBadRequest, rc.log)
 		return
 	}
+
 	id := ulid.Make().String()
 	feed, err := rc.rssService.Create(spanctx, id, body)
 	if err != nil {

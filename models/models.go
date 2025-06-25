@@ -28,4 +28,5 @@ type CreateUserBody struct {
 	Username string `json:"username" validate:"required"`
 	Email    string `json:"email" validate:"required:email"`
 	Avatar   string `json:"avatar" validate:"omitempty,string"`
+	Password string `json:"password" validate:"required,string"`
 }

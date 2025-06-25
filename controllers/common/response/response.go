@@ -10,8 +10,8 @@ import (
 )
 
 type Response struct {
-	Message string      `json:"message"`
-	Data    interface{} `json:"data,omitempty"`
+	Message string `json:"message"`
+	Data    any    `json:"data,omitempty"`
 }
 
 type RssFeed struct {
@@ -37,7 +37,7 @@ func Error(w http.ResponseWriter, message string, status int, log *zap.Logger) {
 	}
 }
 
-func Success(w http.ResponseWriter, message string, status int, data interface{}, log *zap.Logger) {
+func Success(w http.ResponseWriter, message string, status int, data any, log *zap.Logger) {
 	res := Response{
 		Message: message,
 		Data:    data,

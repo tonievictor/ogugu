@@ -61,10 +61,7 @@ func (u *UserService) DeleteUserByID(ctx context.Context, id string) error {
 
 	query := `DELETE FROM users WHERE id = $1;`
 	_, err := u.db.ExecContext(dbctx, query, id)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (u *UserService) CreateUser(ctx context.Context, id string, body models.CreateUserBody) (models.User, error) {

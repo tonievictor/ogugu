@@ -34,10 +34,7 @@ func (r *RssService) DeleteByID(ctx context.Context, id string) error {
 
 	query := "DELETE FROM rss WHERE id = $1;"
 	_, err := r.db.ExecContext(dbctx, query, id)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (r *RssService) Update(ctx context.Context, id, field, value string) (models.RssFeed, error) {
