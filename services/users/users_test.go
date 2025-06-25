@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"ogugu/models"
 	"ogugu/services"
 )
 
@@ -17,7 +18,13 @@ func TestUserService(t *testing.T) {
 	id := "uniqueidhaha"
 
 	t.Run("create user", func(t *testing.T) {
-		_, err := us.CreateUser(context.Background(), "testusername", "test@random.username", id, "randomavatar")
+		body := models.CreateUserBody{
+			Username: "testusername",
+			Email:    "test@random.username",
+			Avatar:   "randomavatar",
+			Password: "password",
+		}
+		_, err := us.CreateUser(context.Background(), id, body)
 		require.NoError(t, err)
 	})
 

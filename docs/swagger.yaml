@@ -1,4 +1,30 @@
 definitions:
+  models.CreateRssBody:
+    properties:
+      link:
+        type: string
+      name:
+        type: string
+    required:
+    - link
+    - name
+    type: object
+  models.CreateUserBody:
+    properties:
+      avatar:
+        type: string
+      email:
+        type: string
+      password:
+        maxLength: 75
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
   models.RssFeed:
     properties:
       created_at:
@@ -38,16 +64,6 @@ definitions:
       message:
         type: string
     type: object
-  rss.CreateRssBody:
-    properties:
-      link:
-        type: string
-      name:
-        type: string
-    required:
-    - link
-    - name
-    type: object
 info:
   contact: {}
 paths:
@@ -77,7 +93,7 @@ paths:
             $ref: '#/definitions/response.Response'
       summary: Find all RSS feeds
       tags:
-      - RSS
+      - rss
     post:
       consumes:
       - application/json
@@ -88,7 +104,7 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/rss.CreateRssBody'
+          $ref: '#/definitions/models.CreateRssBody'
       produces:
       - application/json
       responses:
@@ -106,7 +122,7 @@ paths:
             $ref: '#/definitions/response.Response'
       summary: Create a new RSS feed
       tags:
-      - RSS
+      - rss
   /feed/{id}:
     delete:
       consumes:
@@ -139,7 +155,7 @@ paths:
             $ref: '#/definitions/response.Response'
       summary: Delete an RSS feed by its ID
       tags:
-      - RSS
+      - rss
     get:
       consumes:
       - application/json
@@ -171,5 +187,35 @@ paths:
             $ref: '#/definitions/response.Response'
       summary: Find an RSS feed by its ID
       tags:
-      - RSS
+      - rss
+  /signup:
+    post:
+      consumes:
+      - application/json
+      description: create a new account
+      parameters:
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateUserBody'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.RssFeed'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: sign up
+      tags:
+      - account
 swagger: "2.0"

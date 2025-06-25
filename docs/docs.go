@@ -25,7 +25,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "RSS"
+                    "rss"
                 ],
                 "summary": "Find all RSS feeds",
                 "responses": {
@@ -64,7 +64,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "RSS"
+                    "rss"
                 ],
                 "summary": "Create a new RSS feed",
                 "parameters": [
@@ -74,7 +74,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/rss.CreateRssBody"
+                            "$ref": "#/definitions/models.CreateRssBody"
                         }
                     }
                 ],
@@ -110,7 +110,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "RSS"
+                    "rss"
                 ],
                 "summary": "Find an RSS feed by its ID",
                 "parameters": [
@@ -158,7 +158,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "RSS"
+                    "rss"
                 ],
                 "summary": "Delete an RSS feed by its ID",
                 "parameters": [
@@ -197,9 +197,93 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/signup": {
+            "post": {
+                "description": "create a new account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "account"
+                ],
+                "summary": "sign up",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateUserBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/response.RssFeed"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "models.CreateRssBody": {
+            "type": "object",
+            "required": [
+                "link",
+                "name"
+            ],
+            "properties": {
+                "link": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CreateUserBody": {
+            "type": "object",
+            "required": [
+                "email",
+                "password",
+                "username"
+            ],
+            "properties": {
+                "avatar": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 75
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
         "models.RssFeed": {
             "type": "object",
             "required": [
@@ -255,21 +339,6 @@ const docTemplate = `{
                     }
                 },
                 "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "rss.CreateRssBody": {
-            "type": "object",
-            "required": [
-                "link",
-                "name"
-            ],
-            "properties": {
-                "link": {
-                    "type": "string"
-                },
-                "name": {
                     "type": "string"
                 }
             }

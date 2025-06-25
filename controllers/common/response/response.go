@@ -19,6 +19,11 @@ type RssFeed struct {
 	Data    models.RssFeed
 }
 
+type User struct {
+	Message string
+	Data    models.User
+}
+
 type RssFeeds struct {
 	Message string
 	Data    []models.RssFeed

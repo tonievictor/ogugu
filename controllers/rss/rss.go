@@ -32,10 +32,9 @@ func New(l *zap.Logger, r *rss.RssService) *RssController {
 	}
 }
 
-// Fetch
 // @Summary Find all RSS feeds
 // @Description Retrieve all RSS Feeds in the database.
-// @Tags RSS
+// @Tags rss
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} response.RssFeeds "RSS Feeds found"
@@ -63,10 +62,9 @@ func (rc *RssController) Fetch(w http.ResponseWriter, r *http.Request) {
 	response.Success(w, message, http.StatusOK, feed, rc.log)
 }
 
-// DeleteRssByID godoc
 // @Summary Delete an RSS feed by its ID
 // @Description Delete an existing RSS feed using its unique ID.
-// @Tags RSS
+// @Tags rss
 // @Accept  json
 // @Produce  json
 // @Param id path string true "ID of the RSS feed to retrieve"
@@ -100,10 +98,9 @@ func (rc *RssController) DeleteRssByID(w http.ResponseWriter, r *http.Request) {
 	response.Success(w, "Resource deleted successfully", http.StatusNoContent, "", rc.log)
 }
 
-// FindRssByID godoc
 // @Summary Find an RSS feed by its ID
 // @Description Retrieve an existing RSS feed using its unique ID.
-// @Tags RSS
+// @Tags rss
 // @Accept  json
 // @Produce  json
 // @Param id path string true "ID of the RSS feed to retrieve"
@@ -128,10 +125,9 @@ func (rc *RssController) FindRssByID(w http.ResponseWriter, r *http.Request) {
 	response.Success(w, "Resource found", http.StatusOK, feed, rc.log)
 }
 
-// CreateRss godoc
 // @Summary Create a new RSS feed
 // @Description Create a new RSS feed by providing the feed's name and link.
-// @Tags RSS
+// @Tags rss
 // @Accept  json
 // @Produce  json
 // @Param body body models.CreateRssBody true "Create a new RSS feed"

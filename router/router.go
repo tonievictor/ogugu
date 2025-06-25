@@ -10,8 +10,11 @@ import (
 	"github.com/swaggo/http-swagger/v2"
 	"go.uber.org/zap"
 
+	authcontroller "ogugu/controllers/auth"
 	rsscontroller "ogugu/controllers/rss"
+	authservice "ogugu/services/auth"
 	rssservice "ogugu/services/rss"
+	userservice "ogugu/services/users"
 )
 
 func Routes(db *sql.DB, cache *redis.Client, logger *zap.Logger) http.Handler {
@@ -32,6 +35,9 @@ func Routes(db *sql.DB, cache *redis.Client, logger *zap.Logger) http.Handler {
 	v1.Get("/feed/{id}", rc.FindRssByID)
 	v1.Get("/feed", rc.Fetch)
 	v1.Delete("/feed/{id}", rc.DeleteRssByID)
+
+	ac := authcontroller.New(cache, logger, userservice.New(db), authservice.New(db))
+	v1.Post("/signup", ac.Signup)
 
 	r.Mount("/v1", v1)
 	return r

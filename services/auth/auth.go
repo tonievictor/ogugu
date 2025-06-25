@@ -50,5 +50,6 @@ func (a *AuthService) GetPassWordWithUserID(ctx context.Context, userId string) 
 	if err != nil {
 		return "", err
 	}
+
 	return password, nil
 }

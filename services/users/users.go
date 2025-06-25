@@ -159,8 +159,27 @@ func (u *UserService) GetUser(ctx context.Context, field, value string) (models.
 	return user, nil
 }
 
+func (u *UserService) GetUserAuth(ctx context.Context, email string) (string, string, error) {
+	spanctx, span := tracer.Start(ctx, "get userid and password")
+	defer span.End()
+
+	dbctx, cancel := context.WithTimeout(spanctx, dbtimeout)
+	defer cancel()
+
+	query := `SELECT users.id, auth.password FROM users INNER JOIN auth on users.id = auth.user_id WHERE users.email = $1;`
+	var id string
+	var password string
+	row := u.db.QueryRowContext(dbctx, query, email)
+	err := row.Scan(&id, &password)
+	if err != nil {
+		return "", "", err
+	}
+
+	return id, password, nil
+}
+
 func (u *UserService) GetAllUsers(ctx context.Context) ([]models.User, error) {
-	spanctx, span := tracer.Start(ctx, "MODELS getusers")
+	spanctx, span := tracer.Start(ctx, "get all users from db")
 	defer span.End()
 
 	var users []models.User

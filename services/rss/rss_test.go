@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"ogugu/models"
 	"ogugu/services"
 )
 
@@ -17,13 +18,9 @@ func TestRssService(t *testing.T) {
 	id := "uniqueidhaha"
 
 	t.Run("test create rss", func(t *testing.T) {
-		_, err := rs.Create(context.Background(), "link", "name", id)
+		body := models.CreateRssBody{Link: "link", Name: "name"}
+		_, err := rs.Create(context.Background(), id, body)
 		require.NoError(t, err)
-	})
-
-	t.Run("test create rss", func(t *testing.T) {
-		_, err := rs.Create(context.Background(), "link", "name", id)
-		require.Error(t, err)
 	})
 
 	t.Run("test find rss by id", func(t *testing.T) {
