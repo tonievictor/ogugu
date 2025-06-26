@@ -3,13 +3,15 @@ package auth
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"go.opentelemetry.io/otel"
-	"time"
 )
 
-var dbtimeout = time.Second * 3
-var tracer = otel.Tracer("Auth Service")
+var (
+	dbtimeout = time.Second * 3
+	tracer    = otel.Tracer("Auth Service")
+)
 
 type AuthService struct {
 	db *sql.DB

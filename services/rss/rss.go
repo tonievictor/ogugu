@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"go.opentelemetry.io/otel"
-
 	"ogugu/models"
 )
 
@@ -75,7 +74,6 @@ func (r *RssService) Fetch(ctx context.Context) ([]models.RssFeed, error) {
 	spanctx, span := tracer.Start(ctx, "Fetching All Rss Feeds")
 	defer span.End()
 
-	var allrss []models.RssFeed
 	dbctx, cancel := context.WithTimeout(spanctx, dbtimeout)
 	defer cancel()
 
@@ -84,9 +82,9 @@ func (r *RssService) Fetch(ctx context.Context) ([]models.RssFeed, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	defer rows.Close()
 
+	var allrss []models.RssFeed
 	for rows.Next() {
 		var rss models.RssFeed
 		err := rows.Scan(

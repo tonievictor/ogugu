@@ -2,12 +2,13 @@ package posts
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	"github.com/stretchr/testify/require"
 	"ogugu/models"
 	"ogugu/services"
 	"ogugu/services/rss"
-	"testing"
-	"time"
 )
 
 func TestPostService(t *testing.T) {
@@ -30,6 +31,24 @@ func TestPostService(t *testing.T) {
 		p := models.CreatePost{Title: "new", Description: "actually", Link: "www.whocares.com", PubDate: time.Now()}
 		_, err := ps.CreatePost(context.Background(), id, rss_id, p)
 		require.NoError(t, err)
+	})
 
+	t.Run("get post by id", func(t *testing.T) {
+		_, err := ps.GetPostByID(context.Background(), id)
+		require.NoError(t, err)
+	})
+
+	t.Run("fetch all posts", func(t *testing.T) {
+		p, err := ps.FetchPosts(context.Background())
+		require.NoError(t, err)
+
+		if len(p) != 1 {
+			t.Error("expected one post in the post slice")
+		}
+	})
+
+	t.Run("delete post by id", func(t *testing.T) {
+		err := ps.DeletePost(context.Background(), id)
+		require.NoError(t, err)
 	})
 }
