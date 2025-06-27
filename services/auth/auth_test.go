@@ -2,13 +2,20 @@ package auth
 
 import (
 	"context"
+	"os"
+	"path/filepath"
+	"testing"
+
 	"github.com/stretchr/testify/require"
 	"ogugu/services"
-	"testing"
 )
 
 func TestAuthService(t *testing.T) {
-	db, teardown := services.SetupTestDB(t)
+	dir, err := os.Getwd()
+	require.NoError(t, err)
+
+	mfile := "file://" + filepath.Dir(filepath.Dir(dir)) + "/migrations"
+	db, teardown := services.SetupTestDB(t, mfile)
 	defer teardown()
 
 	as := New(db)

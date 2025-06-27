@@ -2,6 +2,8 @@ package posts
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -12,7 +14,11 @@ import (
 )
 
 func TestPostService(t *testing.T) {
-	db, teardown := services.SetupTestDB(t)
+	dir, err := os.Getwd()
+	require.NoError(t, err)
+
+	mfile := "file://" + filepath.Dir(filepath.Dir(dir)) + "/migrations"
+	db, teardown := services.SetupTestDB(t, mfile)
 	defer teardown()
 
 	ps := New(db)

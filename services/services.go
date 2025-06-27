@@ -17,7 +17,7 @@ import (
 	"ogugu/database"
 )
 
-func SetupTestDB(t *testing.T) (*sql.DB, func()) {
+func SetupTestDB(t *testing.T, mdir string) (*sql.DB, func()) {
 	containerReq := testcontainers.ContainerRequest{
 		Image:        "postgres:16-alpine",
 		ExposedPorts: []string{"5432/tcp"},
@@ -46,7 +46,7 @@ func SetupTestDB(t *testing.T) (*sql.DB, func()) {
 	db, err := database.New("pgx", dbstr)
 	require.NoError(t, err)
 
-	migrateDB(t, dbstr)
+	migrateDB(t, dbstr, mdir)
 
 	return db, func() {
 		err := dbContainer.Terminate(context.Background())
@@ -54,13 +54,13 @@ func SetupTestDB(t *testing.T) (*sql.DB, func()) {
 	}
 }
 
-func migrateDB(t *testing.T, dbconnstr string) {
+func migrateDB(t *testing.T, dbconnstr, mdir string) {
 	// magic file path, not good at all. will update
-	filepath := "file:///home/victor/dev/projects/ogugu/migrations"
-	m, err := migrate.New(filepath, dbconnstr)
+	// mdir is the migration directory
+	m, err := migrate.New(mdir, dbconnstr)
+	require.NoError(t, err)
 	defer m.Close()
 
-	require.NoError(t, err)
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 		require.NoError(t, err)
 	}
