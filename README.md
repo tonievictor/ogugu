@@ -11,8 +11,17 @@ Ogugu is a backend application for an RSS feed aggregator and reader. It allows 
 - Postgres
 - Redis
 - Docker
-- Kubernetes
-- Grafana
+
+## Prerequisite
+1. [Golang 1.24+](https://go.dev/doc/install)
+2. Docker — For containerized services (PostgreSQL & Redis)
+3. Git
+4. [Golang-Migrate](https://github.com/golang-migrate/migrate?tab=readme-ov-file)
+5. [Swag Cli](https://github.com/swaggo/swag) - For API testing
+### Infrastructure (Optional)
+- kind
+- kubectl
+- terraform
 
 ## Setup
 1. Clone the repository and navigate into the project directory
@@ -29,14 +38,15 @@ cp .env.example .env
 ```
 4. Set up the database and cache:
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
+> This will expose PostgreSQL and Redis on your machine for Ogugu to connect to.
 5. Run Database Migrations
 ```bash
 export PGURL=<databaseurl>
 migrate -database ${PGURL} -path migrations up
 ```
-> This will expose PostgreSQL and Redis on your machine for Ogugu to connect to.
+
 ### Kubernetes and Monitoring Setup (optional)
 1. Setup a kubernetes cluster
 > For local development and testing, kind (Kubernetes IN Docker) is recommended. It provides a lightweight Kubernetes cluster running inside Docker containers on your machine.
@@ -75,5 +85,4 @@ go run main.go
 3. Access the Swagger UI to test the API at `http://localhost:<port>/v1/swagger/index.html`
 ### View monitoring dashboards (if set up):
 - Navigate to: http://localhost:3000
-- Login credentials can be found in: terraform/values/grafana.yaml
-
+- Login credentials can be found in [terraform/values/grafana.yaml](./terraform/values/grafana.yaml) 
