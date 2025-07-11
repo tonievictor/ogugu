@@ -18,7 +18,7 @@ type UserWithAuth struct {
 
 type RssFeed struct {
 	ID          string    `json:"id"`
-	Title        string    `json:"title"`
+	Title       string    `json:"title"`
 	Link        string    `json:"link"`
 	Description string    `json:"description"`
 	CreatedAt   time.Time `json:"created_at"`
@@ -36,10 +36,10 @@ type Post struct {
 }
 
 type CreatePost struct {
-	Title       string `xml:"title" validate:"required"`
-	Description string `xml:"description" validate:"required"`
-	Link        string `xml:"link" validate:"required,url"`
-	PubDate     string `xml:"pubDate" validate:"required,datetime"`
+	Title       string    `xml:"title" validate:"required"`
+	Description string    `xml:"description" validate:"required"`
+	Link        string    `xml:"link" validate:"required,url"`
+	PubDate     time.Time `xml:"pubDate" validate:"required,datetime"`
 }
 
 type CreateRssBody struct {
@@ -69,6 +69,5 @@ type RSSMeta struct {
 		LastBuildDate string `xml:"lastBuildDate" validate:"required,datetime"`
 		Title         string `xml:"title" validate:"required"`
 		Description   string `xml:"description" validate:"required"`
-		Link          string `xml:"link" validate:"required,url"`
 	} `xml:"channel"`
 }

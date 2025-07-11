@@ -35,7 +35,7 @@ func (r *RssService) DeleteByID(ctx context.Context, id string) error {
 	return err
 }
 
-func (r *RssService) Update(ctx context.Context, id, value string) (models.RssFeed, error) {
+func (r *RssService) UpdateLink(ctx context.Context, id, value string) (models.RssFeed, error) {
 	spanctx, span := tracer.Start(ctx, "update rss feed")
 	defer span.End()
 
@@ -54,8 +54,8 @@ func (r *RssService) Update(ctx context.Context, id, value string) (models.RssFe
 	err := row.Scan(
 		&rss.ID,
 		&rss.Title,
-		&rss.Description,
 		&rss.Link,
+		&rss.Description,
 		&rss.CreatedAt,
 		&rss.UpdatedAt,
 	)
@@ -110,6 +110,32 @@ func (r *RssService) FindByID(ctx context.Context, id string) (models.RssFeed, e
 	query := `SELECT id, title, link, description, created_at, updated_at FROM rss WHERE id = $1;`
 
 	row := r.db.QueryRowContext(dbctx, query, id)
+	err := row.Scan(
+		&rss.ID,
+		&rss.Title,
+		&rss.Description,
+		&rss.Link,
+		&rss.CreatedAt,
+		&rss.UpdatedAt,
+	)
+	if err != nil {
+		return models.RssFeed{}, err
+	}
+
+	return rss, nil
+}
+
+func (r *RssService) FindByLink(ctx context.Context, link string) (models.RssFeed, error) {
+	spanctx, span := tracer.Start(ctx, "fetch rss feed by link")
+	defer span.End()
+
+	var rss models.RssFeed
+	dbctx, cancel := context.WithTimeout(spanctx, dbtimeout)
+	defer cancel()
+
+	query := `SELECT id, title, link, description, created_at, updated_at FROM rss WHERE link = $1;`
+
+	row := r.db.QueryRowContext(dbctx, query, link)
 	err := row.Scan(
 		&rss.ID,
 		&rss.Title,

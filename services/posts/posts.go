@@ -85,7 +85,7 @@ func (ps *PostService) GetPostByID(ctx context.Context, id string) (models.Post,
 	return post, nil
 }
 
-func (ps *PostService) FetchPosts(ctx context.Context) ([]models.Post, error) {
+func (ps *PostService) Fetch(ctx context.Context) ([]models.Post, error) {
 	spanctx, span := tracer.Start(ctx, "fetch all posts")
 	defer span.End()
 

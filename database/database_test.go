@@ -15,7 +15,7 @@ func TestDB(t *testing.T) {
 		require.Error(t, err)
 	})
 
-	dotenv.Config("../.env")
+	dotenv.Config(dotenv.WithFilename("../.env"))
 
 	t.Run("correct db credentials", func(t *testing.T) {
 		_, err := New("pgx", os.Getenv("DATABASE_URL"))

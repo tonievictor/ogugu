@@ -1,3 +1,9 @@
 .env
 main
 ogugu
+.air.toml
+tmp
+**/.terraform/*
+**/.terraform.lock.hcl
+**/*.tfstate
+**/*.tfstate.*

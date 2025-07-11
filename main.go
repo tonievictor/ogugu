@@ -12,14 +12,14 @@ import (
 
 	"github.com/redis/go-redis/v9"
 	"github.com/tonievictor/dotenv"
-	// "go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 
 	"ogugu/database"
 	"ogugu/database/cache"
 	"ogugu/docs"
 	"ogugu/router"
-	// "ogugu/telemetry"
+	"ogugu/telemetry"
 )
 
 func main() {
@@ -56,14 +56,19 @@ func InitServer(db *sql.DB, rds *redis.Client, log *zap.Logger) {
 
 	// set up tracing
 	// exp, err := telemetry.NewConsoleExporter()
-	// exp, err := telemetry.NewOtlpExporter(ctx) to be used in production setting
-	// if err != nil {
-	// 	fmt.Println("Something is wrong haha")
-	// 	return
-	// }
-	// tp := telemetry.NewTraceProvider(exp)
-	// defer func() { _ = tp.Shutdown(ctx) }()
-	// otel.SetTracerProvider(tp)
+	// to be used in production setting
+	exp, err := telemetry.NewOtlpExporter(ctx)
+	if err != nil {
+		log.Error("cannot setup otlp exporter", zap.Error(err))
+		return
+	}
+	tp, err := telemetry.NewTraceProvider(exp)
+	if err != nil {
+		log.Error("cannot setup otlp exporter", zap.Error(err))
+		return
+	}
+	defer func() { _ = tp.Shutdown(ctx) }()
+	otel.SetTracerProvider(tp)
 
 	server := http.Server{
 		Addr:         ":8080",
@@ -89,5 +94,4 @@ func InitServer(db *sql.DB, rds *redis.Client, log *zap.Logger) {
 	}
 
 	server.Shutdown(ctx)
-	return
 }

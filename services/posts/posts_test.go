@@ -28,8 +28,12 @@ func TestPostService(t *testing.T) {
 	id := "rss_id"
 
 	t.Run("test create rss", func(t *testing.T) {
-		body := models.CreateRssBody{Link: "link", Name: "name"}
-		_, err := rs.Create(context.Background(), rss_id, body)
+		var meta models.RSSMeta
+		meta.Channel.LastBuildDate = "Thu, 11 Jul 2025 15:04:05 GMT"
+		meta.Channel.Title = "Example RSS Feed"
+		meta.Channel.Description = "This is a description of the RSS feed."
+
+		_, err := rs.Create(context.Background(), rss_id, "link", meta)
 		require.NoError(t, err)
 	})
 
@@ -45,7 +49,7 @@ func TestPostService(t *testing.T) {
 	})
 
 	t.Run("fetch all posts", func(t *testing.T) {
-		p, err := ps.FetchPosts(context.Background())
+		p, err := ps.Fetch(context.Background())
 		require.NoError(t, err)
 
 		if len(p) != 1 {

@@ -164,10 +164,10 @@ func (rc *RssController) CreateRss(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	meta, err := getRssInfo(body.Link, spanctx)
+	meta, msg, err := getRssInfo(body.Link, spanctx)
 	if err != nil {
-		rc.log.Error("could not fetch rss information from the provided url", zap.Error(err))
-		response.Error(w, "malformed rss link", http.StatusBadRequest, rc.log)
+		rc.log.Error(msg, zap.Error(err))
+		response.Error(w, msg, http.StatusBadRequest, rc.log)
 		return
 	}
 
@@ -183,29 +183,29 @@ func (rc *RssController) CreateRss(w http.ResponseWriter, r *http.Request) {
 	response.Success(w, "Rss Feed created", http.StatusCreated, feed, rc.log)
 }
 
-func getRssInfo(url string, ctx context.Context) (models.RSSMeta, error) {
+func getRssInfo(url string, ctx context.Context) (models.RSSMeta, string, error) {
 	_, span := tracer.Start(ctx, "get rss metadata")
 	defer span.End()
 	client := http.Client{
-		Timeout: time.Second * 60,
+		Timeout: time.Second * 10,
 	}
 
 	res, err := client.Get(url)
-	if err != nil {
-		return models.RSSMeta{}, err
+	if err != nil || res.StatusCode != 200 {
+		return models.RSSMeta{}, "could not fetch from rss link", err
 	}
 
 	defer res.Body.Close()
 	data, err := io.ReadAll(res.Body)
 	if err != nil {
-		return models.RSSMeta{}, err
+		return models.RSSMeta{}, "an error occured while reading rss body", err
 	}
 
 	var body models.RSSMeta
 	err = xml.Unmarshal(data, &body)
 	if err != nil {
-		return models.RSSMeta{}, err
+		return models.RSSMeta{}, "The URL does not point to a valid RSS feed", err
 	}
 
-	return body, nil
+	return body, "", nil
 }

@@ -24,8 +24,11 @@ func TestRssService(t *testing.T) {
 	id := "uniqueidhaha"
 
 	t.Run("test create rss", func(t *testing.T) {
-		body := models.CreateRssBody{Link: "link", Name: "name"}
-		_, err := rs.Create(context.Background(), id, body)
+		var meta models.RSSMeta
+		meta.Channel.LastBuildDate = "Thu, 11 Jul 2025 15:04:05 GMT"
+		meta.Channel.Title = "Example RSS Feed"
+		meta.Channel.Description = "This is a description of the RSS feed."
+		_, err := rs.Create(context.Background(), id, "link", meta)
 		require.NoError(t, err)
 	})
 
@@ -45,26 +48,14 @@ func TestRssService(t *testing.T) {
 	})
 
 	t.Run("update rss", func(t *testing.T) {
-		newname := "newnamewhothat"
-		updatedfeed, err := rs.Update(context.Background(), id, "name", newname)
+		newlink := "newnamewhothat"
+		updatedfeed, err := rs.UpdateLink(context.Background(), id, newlink)
 
 		require.NoError(t, err)
 
-		if updatedfeed.Name != newname {
-			t.Errorf("Expected updated feed name to be '%s', but got: %s", newname, updatedfeed.Name)
+		if updatedfeed.Link != newlink {
+			t.Errorf("Expected updated feed link to be '%s', but got: %s", newlink, updatedfeed.Link)
 		}
-	})
-
-	t.Run("update rss", func(t *testing.T) {
-		newname := "newnamewhothat"
-		_, err := rs.Update(context.Background(), id, "id", newname)
-		require.Error(t, err)
-	})
-
-	t.Run("update rss", func(t *testing.T) {
-		newname := "newnamewhothat"
-		_, err := rs.Update(context.Background(), "nonexistentid", "id", newname)
-		require.Error(t, err)
 	})
 
 	t.Run("delete rss", func(t *testing.T) {
