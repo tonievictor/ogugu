@@ -3,11 +3,8 @@ definitions:
     properties:
       link:
         type: string
-      name:
-        type: string
     required:
     - link
-    - name
     type: object
   models.CreateUserBody:
     properties:
@@ -29,18 +26,16 @@ definitions:
     properties:
       created_at:
         type: string
+      description:
+        type: string
       id:
         type: string
       link:
         type: string
-      name:
+      title:
         type: string
       updated_at:
         type: string
-    required:
-    - id
-    - link
-    - name
     type: object
   models.SigninBody:
     properties:
@@ -67,12 +62,6 @@ definitions:
         type: string
       username:
         type: string
-    required:
-    - avatar
-    - created_at
-    - id
-    - updated_at
-    - username
     type: object
   models.UserWithAuth:
     properties:

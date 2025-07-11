@@ -13,10 +13,9 @@ require (
 	github.com/swaggo/http-swagger/v2 v2.0.2
 	github.com/swaggo/swag v1.16.4
 	github.com/testcontainers/testcontainers-go v0.35.0
-	github.com/tonievictor/dotenv v0.1.3
+	github.com/tonievictor/dotenv v0.2.1
 	go.opentelemetry.io/otel v1.33.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.33.0
-	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.33.0
 	go.opentelemetry.io/otel/sdk v1.33.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.39.0

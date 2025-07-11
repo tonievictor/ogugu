@@ -1,8 +1,12 @@
 package rss
 
 import (
+	"context"
 	"encoding/json"
+	"encoding/xml"
+	"io"
 	"net/http"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/oklog/ulid/v2"
@@ -16,7 +20,7 @@ import (
 )
 
 var (
-	tracer   = otel.Tracer("Rss Controller")
+	tracer   = otel.Tracer("rss controller")
 	Validate = validator.New()
 )
 
@@ -43,7 +47,7 @@ func New(l *zap.Logger, r *rss.RssService) *RssController {
 // @Failure 500 {object} response.Response "Internal server error"
 // @Router /feed [get]
 func (rc *RssController) Fetch(w http.ResponseWriter, r *http.Request) {
-	spanctx, span := tracer.Start(r.Context(), "Find RssFeedByID")
+	spanctx, span := tracer.Start(r.Context(), "fetch all rss")
 	defer span.End()
 
 	feed, err := rc.rssService.Fetch(spanctx)
@@ -74,7 +78,7 @@ func (rc *RssController) Fetch(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} response.Response "Internal server error"
 // @Router /feed/{id} [delete]
 func (rc *RssController) DeleteRssByID(w http.ResponseWriter, r *http.Request) {
-	spanctx, span := tracer.Start(r.Context(), "Delete Rss by ID")
+	spanctx, span := tracer.Start(r.Context(), "delete rss by id")
 	defer span.End()
 
 	id := r.PathValue("id")
@@ -95,7 +99,8 @@ func (rc *RssController) DeleteRssByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.Success(w, "Resource deleted successfully", http.StatusNoContent, "", rc.log)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // @Summary Find an RSS feed by its ID
@@ -110,7 +115,7 @@ func (rc *RssController) DeleteRssByID(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} response.Response "Internal server error"
 // @Router /feed/{id} [get]
 func (rc *RssController) FindRssByID(w http.ResponseWriter, r *http.Request) {
-	spanctx, span := tracer.Start(r.Context(), "Find RssFeedByID")
+	spanctx, span := tracer.Start(r.Context(), "fetch rss by id")
 	defer span.End()
 
 	id := r.PathValue("id")
@@ -136,7 +141,7 @@ func (rc *RssController) FindRssByID(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} response.Response "Unable to create feed"
 // @Router /feed [post]
 func (rc *RssController) CreateRss(w http.ResponseWriter, r *http.Request) {
-	spanctx, span := tracer.Start(r.Context(), "Create RssFeed")
+	spanctx, span := tracer.Start(r.Context(), "create rss feed")
 	defer span.End()
 
 	if r.Body == nil {
@@ -159,8 +164,15 @@ func (rc *RssController) CreateRss(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	meta, err := getRssInfo(body.Link, spanctx)
+	if err != nil {
+		rc.log.Error("could not fetch rss information from the provided url", zap.Error(err))
+		response.Error(w, "malformed rss link", http.StatusBadRequest, rc.log)
+		return
+	}
+
 	id := ulid.Make().String()
-	feed, err := rc.rssService.Create(spanctx, id, body)
+	feed, err := rc.rssService.Create(spanctx, id, body.Link, meta)
 	if err != nil {
 		rc.log.Error("unable to create new rss entry", zap.Error(err))
 		status, message := pgerrors.Details(err)
@@ -169,4 +181,31 @@ func (rc *RssController) CreateRss(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.Success(w, "Rss Feed created", http.StatusCreated, feed, rc.log)
+}
+
+func getRssInfo(url string, ctx context.Context) (models.RSSMeta, error) {
+	_, span := tracer.Start(ctx, "get rss metadata")
+	defer span.End()
+	client := http.Client{
+		Timeout: time.Second * 60,
+	}
+
+	res, err := client.Get(url)
+	if err != nil {
+		return models.RSSMeta{}, err
+	}
+
+	defer res.Body.Close()
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
+		return models.RSSMeta{}, err
+	}
+
+	var body models.RSSMeta
+	err = xml.Unmarshal(data, &body)
+	if err != nil {
+		return models.RSSMeta{}, err
+	}
+
+	return body, nil
 }

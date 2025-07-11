@@ -3,7 +3,6 @@ package rss
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"time"
 
 	"go.opentelemetry.io/otel"
@@ -12,7 +11,7 @@ import (
 
 const dbtimeout = time.Second * 3
 
-var tracer = otel.Tracer("RssFeed Service")
+var tracer = otel.Tracer("rss service")
 
 type RssService struct {
 	db *sql.DB
@@ -25,7 +24,7 @@ func New(db *sql.DB) *RssService {
 }
 
 func (r *RssService) DeleteByID(ctx context.Context, id string) error {
-	spanctx, span := tracer.Start(ctx, "Deleting an RssFeed by ID")
+	spanctx, span := tracer.Start(ctx, "delete rss feed by id")
 	defer span.End()
 
 	dbctx, cancel := context.WithTimeout(spanctx, dbtimeout)
@@ -36,29 +35,26 @@ func (r *RssService) DeleteByID(ctx context.Context, id string) error {
 	return err
 }
 
-func (r *RssService) Update(ctx context.Context, id, field, value string) (models.RssFeed, error) {
-	spanctx, span := tracer.Start(ctx, "Updating An RssFeed")
+func (r *RssService) Update(ctx context.Context, id, value string) (models.RssFeed, error) {
+	spanctx, span := tracer.Start(ctx, "update rss feed")
 	defer span.End()
-
-	if field != "name" && field != "link" {
-		return models.RssFeed{}, fmt.Errorf("Invalid field: %s. Only 'name' or 'link' are allowed", field)
-	}
 
 	var rss models.RssFeed
 	dbctx, cancel := context.WithTimeout(spanctx, dbtimeout)
 	defer cancel()
 
-	query := fmt.Sprintf(`
+	query := `
 		UPDATE rss
-		SET %s = $1, updated_at = $2
+		SET link = $1, updated_at = $2
 		WHERE id = $3
-		RETURNING id, name, link, created_at, updated_at;
-	`, field)
+		RETURNING id, title, link, description, created_at, updated_at;
+	`
 
 	row := r.db.QueryRowContext(dbctx, query, value, time.Now(), id)
 	err := row.Scan(
 		&rss.ID,
-		&rss.Name,
+		&rss.Title,
+		&rss.Description,
 		&rss.Link,
 		&rss.CreatedAt,
 		&rss.UpdatedAt,
@@ -71,13 +67,13 @@ func (r *RssService) Update(ctx context.Context, id, field, value string) (model
 }
 
 func (r *RssService) Fetch(ctx context.Context) ([]models.RssFeed, error) {
-	spanctx, span := tracer.Start(ctx, "Fetching All Rss Feeds")
+	spanctx, span := tracer.Start(ctx, "fetch all rss feeds")
 	defer span.End()
 
 	dbctx, cancel := context.WithTimeout(spanctx, dbtimeout)
 	defer cancel()
 
-	query := `SELECT id, name, link, created_at, updated_at FROM rss;`
+	query := `SELECT id, title, link, description, created_at, updated_at FROM rss;`
 	rows, err := r.db.QueryContext(dbctx, query)
 	if err != nil {
 		return nil, err
@@ -89,7 +85,8 @@ func (r *RssService) Fetch(ctx context.Context) ([]models.RssFeed, error) {
 		var rss models.RssFeed
 		err := rows.Scan(
 			&rss.ID,
-			&rss.Name,
+			&rss.Title,
+			&rss.Description,
 			&rss.Link,
 			&rss.CreatedAt,
 			&rss.UpdatedAt,
@@ -102,49 +99,21 @@ func (r *RssService) Fetch(ctx context.Context) ([]models.RssFeed, error) {
 	return allrss, nil
 }
 
-func (r *RssService) Find(ctx context.Context, field, value string) (models.RssFeed, error) {
-	spanctx, span := tracer.Start(ctx, "Fetching RSS Feed by Name | Link")
-	defer span.End()
-
-	if field != "name" && field != "link" {
-		return models.RssFeed{}, fmt.Errorf("Invalid key: the %s field cannot be used as a key", field)
-	}
-
-	var rss models.RssFeed
-	dbctx, cancel := context.WithTimeout(spanctx, dbtimeout)
-	defer cancel()
-
-	query := fmt.Sprintf(`SELECT id, name, link, created_at, updated_at FROM rss WHERE %s = $1;`, field)
-
-	row := r.db.QueryRowContext(dbctx, query, value)
-	err := row.Scan(
-		&rss.ID,
-		&rss.Name,
-		&rss.Link,
-		&rss.CreatedAt,
-		&rss.UpdatedAt,
-	)
-	if err != nil {
-		return models.RssFeed{}, err
-	}
-
-	return rss, nil
-}
-
 func (r *RssService) FindByID(ctx context.Context, id string) (models.RssFeed, error) {
-	spanctx, span := tracer.Start(ctx, "Fetching RSS Feed by ID")
+	spanctx, span := tracer.Start(ctx, "fetch rss feed by id")
 	defer span.End()
 
 	var rss models.RssFeed
 	dbctx, cancel := context.WithTimeout(spanctx, dbtimeout)
 	defer cancel()
 
-	query := `SELECT id, name, link, created_at, updated_at FROM rss WHERE id = $1;`
+	query := `SELECT id, title, link, description, created_at, updated_at FROM rss WHERE id = $1;`
 
 	row := r.db.QueryRowContext(dbctx, query, id)
 	err := row.Scan(
 		&rss.ID,
-		&rss.Name,
+		&rss.Title,
+		&rss.Description,
 		&rss.Link,
 		&rss.CreatedAt,
 		&rss.UpdatedAt,
@@ -156,8 +125,8 @@ func (r *RssService) FindByID(ctx context.Context, id string) (models.RssFeed, e
 	return rss, nil
 }
 
-func (r *RssService) Create(ctx context.Context, id string, body models.CreateRssBody) (models.RssFeed, error) {
-	spanctx, span := tracer.Start(ctx, "Inserting RSS Feed to DB")
+func (r *RssService) Create(ctx context.Context, id, link string, body models.RSSMeta) (models.RssFeed, error) {
+	spanctx, span := tracer.Start(ctx, "insert rss feed")
 	defer span.End()
 
 	var rss models.RssFeed
@@ -166,14 +135,15 @@ func (r *RssService) Create(ctx context.Context, id string, body models.CreateRs
 	defer cancel()
 
 	query := `
-		INSERT INTO rss (id, name, link, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5)
-		RETURNING id, name, link, created_at, updated_at;
+		INSERT INTO rss (id, title, link, description, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		RETURNING id, title, description, link, created_at, updated_at;
 	`
-	row := r.db.QueryRowContext(dbctx, query, id, body.Name, body.Link, time.Now(), time.Now())
+	row := r.db.QueryRowContext(dbctx, query, id, body.Channel.Title, link, body.Channel.Description, time.Now(), time.Now())
 	err := row.Scan(
 		&rss.ID,
-		&rss.Name,
+		&rss.Title,
+		&rss.Description,
 		&rss.Link,
 		&rss.CreatedAt,
 		&rss.UpdatedAt,

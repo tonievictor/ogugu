@@ -284,14 +284,10 @@
         "models.CreateRssBody": {
             "type": "object",
             "required": [
-                "link",
-                "name"
+                "link"
             ],
             "properties": {
                 "link": {
-                    "type": "string"
-                },
-                "name": {
                     "type": "string"
                 }
             }
@@ -321,13 +317,11 @@
         },
         "models.RssFeed": {
             "type": "object",
-            "required": [
-                "id",
-                "link",
-                "name"
-            ],
             "properties": {
                 "created_at": {
+                    "type": "string"
+                },
+                "description": {
                     "type": "string"
                 },
                 "id": {
@@ -336,7 +330,7 @@
                 "link": {
                     "type": "string"
                 },
-                "name": {
+                "title": {
                     "type": "string"
                 },
                 "updated_at": {
@@ -362,13 +356,6 @@
         },
         "models.User": {
             "type": "object",
-            "required": [
-                "avatar",
-                "created_at",
-                "id",
-                "updated_at",
-                "username"
-            ],
             "properties": {
                 "avatar": {
                     "type": "string"

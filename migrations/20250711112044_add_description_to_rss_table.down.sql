@@ -1,0 +1,5 @@
+ALTER TABLE IF EXISTS rss
+DROP COLUMN description;
+
+ALTER TABLE IF EXISTS rss
+RENAME COLUMN title TO name;

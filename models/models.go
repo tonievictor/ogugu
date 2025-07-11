@@ -17,11 +17,12 @@ type UserWithAuth struct {
 }
 
 type RssFeed struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	Link      string    `json:"link"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID          string    `json:"id"`
+	Title        string    `json:"title"`
+	Link        string    `json:"link"`
+	Description string    `json:"description"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 type Post struct {
@@ -35,14 +36,13 @@ type Post struct {
 }
 
 type CreatePost struct {
-	Title       string    `xml:"title" validate:"required"`
-	Description string    `xml:"description" validate:"required"`
-	Link        string    `xml:"link" validate:"required,url"`
-	PubDate     time.Time `xml:"pubDate" validate:"required,datetime"`
+	Title       string `xml:"title" validate:"required"`
+	Description string `xml:"description" validate:"required"`
+	Link        string `xml:"link" validate:"required,url"`
+	PubDate     string `xml:"pubDate" validate:"required,datetime"`
 }
 
 type CreateRssBody struct {
-	Name string `json:"name" validate:"required"`
 	Link string `json:"link" validate:"required,url"`
 }
 
@@ -62,4 +62,13 @@ type Session struct {
 	UserID     string
 	CreatedAt  time.Time
 	ExpiryTime time.Time
+}
+
+type RSSMeta struct {
+	Channel struct {
+		LastBuildDate string `xml:"lastBuildDate" validate:"required,datetime"`
+		Title         string `xml:"title" validate:"required"`
+		Description   string `xml:"description" validate:"required"`
+		Link          string `xml:"link" validate:"required,url"`
+	} `xml:"channel"`
 }

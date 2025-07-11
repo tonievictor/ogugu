@@ -295,14 +295,10 @@ const docTemplate = `{
         "models.CreateRssBody": {
             "type": "object",
             "required": [
-                "link",
-                "name"
+                "link"
             ],
             "properties": {
                 "link": {
-                    "type": "string"
-                },
-                "name": {
                     "type": "string"
                 }
             }
@@ -332,13 +328,11 @@ const docTemplate = `{
         },
         "models.RssFeed": {
             "type": "object",
-            "required": [
-                "id",
-                "link",
-                "name"
-            ],
             "properties": {
                 "created_at": {
+                    "type": "string"
+                },
+                "description": {
                     "type": "string"
                 },
                 "id": {
@@ -347,7 +341,7 @@ const docTemplate = `{
                 "link": {
                     "type": "string"
                 },
-                "name": {
+                "title": {
                     "type": "string"
                 },
                 "updated_at": {
@@ -373,13 +367,6 @@ const docTemplate = `{
         },
         "models.User": {
             "type": "object",
-            "required": [
-                "avatar",
-                "created_at",
-                "id",
-                "updated_at",
-                "username"
-            ],
             "properties": {
                 "avatar": {
                     "type": "string"

@@ -17,7 +17,6 @@ func TestRssService(t *testing.T) {
 	require.NoError(t, err)
 
 	mfile := "file://" + filepath.Dir(filepath.Dir(dir)) + "/migrations"
-
 	db, teardown := services.SetupTestDB(t, mfile)
 	defer teardown()
 
