@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	tracer   = otel.Tracer("Auth Controller")
+	tracer   = otel.Tracer("auth controller")
 	Validate = validator.New()
 )
 

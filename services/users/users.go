@@ -13,7 +13,7 @@ import (
 
 const dbtimeout = time.Second * 3
 
-var tracer = otel.Tracer("User Service")
+var tracer = otel.Tracer("user service")
 
 type UserService struct {
 	db *sql.DB
@@ -26,7 +26,7 @@ func New(db *sql.DB) *UserService {
 }
 
 func (u *UserService) GetUserByID(ctx context.Context, id string) (models.User, error) {
-	spanctx, span := tracer.Start(ctx, "MODELS getuser by id")
+	spanctx, span := tracer.Start(ctx, "getuser by id")
 	defer span.End()
 
 	var user models.User
@@ -53,7 +53,7 @@ func (u *UserService) GetUserByID(ctx context.Context, id string) (models.User, 
 }
 
 func (u *UserService) DeleteUserByID(ctx context.Context, id string) error {
-	spanctx, span := tracer.Start(ctx, "MODELS delete user")
+	spanctx, span := tracer.Start(ctx, "delete user")
 	defer span.End()
 
 	dbctx, cancel := context.WithTimeout(spanctx, dbtimeout)
@@ -65,7 +65,7 @@ func (u *UserService) DeleteUserByID(ctx context.Context, id string) error {
 }
 
 func (u *UserService) CreateUser(ctx context.Context, id string, body models.CreateUserBody) (models.User, error) {
-	spanctx, span := tracer.Start(ctx, "MODELS create user")
+	spanctx, span := tracer.Start(ctx, "create user")
 	defer span.End()
 
 	var user models.User
@@ -93,7 +93,7 @@ func (u *UserService) CreateUser(ctx context.Context, id string, body models.Cre
 }
 
 func (u *UserService) UpdateUser(ctx context.Context, id string, field, value string) (models.User, error) {
-	spanctx, span := tracer.Start(ctx, "MODELS update user")
+	spanctx, span := tracer.Start(ctx, "update user")
 	defer span.End()
 
 	if field != "email" && field != "username" && field != "avatar" {
@@ -129,7 +129,7 @@ func (u *UserService) UpdateUser(ctx context.Context, id string, field, value st
 }
 
 func (u *UserService) GetUser(ctx context.Context, field, value string) (models.User, error) {
-	spanctx, span := tracer.Start(ctx, "MODELS getuser")
+	spanctx, span := tracer.Start(ctx, "fetch user")
 	defer span.End()
 
 	if field != "email" {
@@ -179,7 +179,7 @@ func (u *UserService) GetUserAuth(ctx context.Context, email string) (string, st
 }
 
 func (u *UserService) GetAllUsers(ctx context.Context) ([]models.User, error) {
-	spanctx, span := tracer.Start(ctx, "get all users from db")
+	spanctx, span := tracer.Start(ctx, "fetch all users from db")
 	defer span.End()
 
 	var users []models.User

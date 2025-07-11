@@ -10,7 +10,7 @@ import (
 
 var (
 	dbtimeout = time.Second * 3
-	tracer    = otel.Tracer("Auth Service")
+	tracer    = otel.Tracer("auth service")
 )
 
 type AuthService struct {
