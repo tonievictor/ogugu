@@ -11,8 +11,10 @@ import (
 	"go.uber.org/zap"
 
 	authcontroller "ogugu/controllers/auth"
+	postcontroller "ogugu/controllers/posts"
 	rsscontroller "ogugu/controllers/rss"
 	authservice "ogugu/services/auth"
+	postservice "ogugu/services/posts"
 	rssservice "ogugu/services/rss"
 	userservice "ogugu/services/users"
 )
@@ -39,6 +41,10 @@ func Routes(db *sql.DB, cache *redis.Client, logger *zap.Logger) http.Handler {
 	ac := authcontroller.New(cache, logger, userservice.New(db), authservice.New(db))
 	v1.Post("/signup", ac.Signup)
 	v1.Post("/signin", ac.Signin)
+
+	pc := postcontroller.New(logger, postservice.New(db))
+	v1.Get("/posts", pc.FetchPosts)
+	v1.Get("/posts/{id}", pc.GetPostByID)
 
 	r.Mount("/v1", v1)
 	return r

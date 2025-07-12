@@ -44,7 +44,7 @@ func TestPostService(t *testing.T) {
 	})
 
 	t.Run("get post by id", func(t *testing.T) {
-		_, err := ps.GetPostByID(context.Background(), id)
+		_, err := ps.GetByID(context.Background(), id)
 		require.NoError(t, err)
 	})
 

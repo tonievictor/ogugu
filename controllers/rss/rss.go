@@ -39,7 +39,6 @@ func New(l *zap.Logger, r *rss.RssService) *RssController {
 // @Summary Find all RSS feeds
 // @Description Retrieve all RSS Feeds in the database.
 // @Tags rss
-// @Accept  json
 // @Produce  json
 // @Success 200 {object} response.RssFeeds "RSS Feeds found"
 // @Failure 400 {object} response.Response "Invalid request"
@@ -69,7 +68,6 @@ func (rc *RssController) Fetch(w http.ResponseWriter, r *http.Request) {
 // @Summary Delete an RSS feed by its ID
 // @Description Delete an existing RSS feed using its unique ID.
 // @Tags rss
-// @Accept  json
 // @Produce  json
 // @Param id path string true "ID of the RSS feed to retrieve"
 // @Success 204 {object} response.Response "RSS Feed deleted"
@@ -106,7 +104,6 @@ func (rc *RssController) DeleteRssByID(w http.ResponseWriter, r *http.Request) {
 // @Summary Find an RSS feed by its ID
 // @Description Retrieve an existing RSS feed using its unique ID.
 // @Tags rss
-// @Accept  json
 // @Produce  json
 // @Param id path string true "ID of the RSS feed to retrieve"
 // @Success 200 {object} response.RssFeed "RSS Feed found"

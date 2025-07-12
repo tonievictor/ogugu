@@ -56,7 +56,7 @@ func (ps *PostService) CreatePost(
 	return post, nil
 }
 
-func (ps *PostService) GetPostByID(ctx context.Context, id string) (models.Post, error) {
+func (ps *PostService) GetByID(ctx context.Context, id string) (models.Post, error) {
 	spanctx, span := tracer.Start(ctx, "get a post by id")
 	defer span.End()
 

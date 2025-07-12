@@ -12,7 +12,7 @@ Ogugu is a backend application for an RSS feed aggregator and reader. It allows 
 - Redis
 - Docker
 
-## Prerequisite
+## Prerequisites 
 1. [Golang 1.24+](https://go.dev/doc/install)
 2. Docker — For containerized services (PostgreSQL & Redis)
 3. Git

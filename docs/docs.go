@@ -18,9 +18,6 @@ const docTemplate = `{
         "/feed": {
             "get": {
                 "description": "Retrieve all RSS Feeds in the database.",
-                "consumes": [
-                    "application/json"
-                ],
                 "produces": [
                     "application/json"
                 ],
@@ -103,9 +100,6 @@ const docTemplate = `{
         "/feed/{id}": {
             "get": {
                 "description": "Retrieve an existing RSS feed using its unique ID.",
-                "consumes": [
-                    "application/json"
-                ],
                 "produces": [
                     "application/json"
                 ],
@@ -151,9 +145,6 @@ const docTemplate = `{
             },
             "delete": {
                 "description": "Delete an existing RSS feed using its unique ID.",
-                "consumes": [
-                    "application/json"
-                ],
                 "produces": [
                     "application/json"
                 ],
@@ -191,6 +182,73 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/posts": {
+            "get": {
+                "description": "get all posts",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posts"
+                ],
+                "summary": "get all posts",
+                "responses": {
+                    "200": {
+                        "description": "Posts found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Posts"
+                        }
+                    },
+                    "default": {
+                        "description": "Unable to get posts",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/posts/{id}": {
+            "get": {
+                "description": "get a post by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posts"
+                ],
+                "summary": "get a post",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Post ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Post with ID found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Post"
+                        }
+                    },
+                    "404": {
+                        "description": "Post with ID not found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "default": {
+                        "description": "Unable to get post with id",
                         "schema": {
                             "$ref": "#/definitions/response.Response"
                         }
@@ -326,6 +384,32 @@ const docTemplate = `{
                 }
             }
         },
+        "models.Post": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "link": {
+                    "type": "string"
+                },
+                "pubDate": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "models.RssFeed": {
             "type": "object",
             "properties": {
@@ -396,6 +480,31 @@ const docTemplate = `{
                 },
                 "user": {
                     "$ref": "#/definitions/models.User"
+                }
+            }
+        },
+        "response.Post": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.Post"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.Posts": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Post"
+                    }
+                },
+                "message": {
+                    "type": "string"
                 }
             }
         },

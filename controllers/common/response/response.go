@@ -9,30 +9,6 @@ import (
 	"ogugu/models"
 )
 
-type Response struct {
-	Message string `json:"message"`
-	Data    any    `json:"data,omitempty"`
-}
-
-type RssFeed struct {
-	Message string
-	Data    models.RssFeed
-}
-
-type User struct {
-	Message string
-	Data    models.User
-}
-
-type UserWithAuth struct {
-	Message string
-	Data    models.UserWithAuth
-}
-type RssFeeds struct {
-	Message string
-	Data    []models.RssFeed
-}
-
 func Error(w http.ResponseWriter, message string, status int, log *zap.Logger) {
 	res := Response{
 		Message: message,
@@ -57,4 +33,39 @@ func Success(w http.ResponseWriter, message string, status int, data any, log *z
 	if err != nil {
 		log.Error("RESPONSE", zap.String("Error sending response", err.Error()))
 	}
+}
+
+type Response struct {
+	Message string `json:"message"`
+	Data    any    `json:"data,omitempty"`
+}
+
+type RssFeed struct {
+	Message string
+	Data    models.RssFeed
+}
+
+type Post struct {
+	Message string
+	Data    models.Post
+}
+
+type Posts struct {
+	Message string
+	Data    []models.Post
+}
+
+type User struct {
+	Message string
+	Data    models.User
+}
+
+type UserWithAuth struct {
+	Message string
+	Data    models.UserWithAuth
+}
+
+type RssFeeds struct {
+	Message string
+	Data    []models.RssFeed
 }

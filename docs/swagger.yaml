@@ -22,6 +22,23 @@ definitions:
     - password
     - username
     type: object
+  models.Post:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      link:
+        type: string
+      pubDate:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
   models.RssFeed:
     properties:
       created_at:
@@ -70,6 +87,22 @@ definitions:
       user:
         $ref: '#/definitions/models.User'
     type: object
+  response.Post:
+    properties:
+      data:
+        $ref: '#/definitions/models.Post'
+      message:
+        type: string
+    type: object
+  response.Posts:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.Post'
+        type: array
+      message:
+        type: string
+    type: object
   response.Response:
     properties:
       data: {}
@@ -111,8 +144,6 @@ info:
 paths:
   /feed:
     get:
-      consumes:
-      - application/json
       description: Retrieve all RSS Feeds in the database.
       produces:
       - application/json
@@ -167,8 +198,6 @@ paths:
       - rss
   /feed/{id}:
     delete:
-      consumes:
-      - application/json
       description: Delete an existing RSS feed using its unique ID.
       parameters:
       - description: ID of the RSS feed to retrieve
@@ -199,8 +228,6 @@ paths:
       tags:
       - rss
     get:
-      consumes:
-      - application/json
       description: Retrieve an existing RSS feed using its unique ID.
       parameters:
       - description: ID of the RSS feed to retrieve
@@ -230,6 +257,50 @@ paths:
       summary: Find an RSS feed by its ID
       tags:
       - rss
+  /posts:
+    get:
+      description: get all posts
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Posts found
+          schema:
+            $ref: '#/definitions/response.Posts'
+        default:
+          description: Unable to get posts
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: get all posts
+      tags:
+      - posts
+  /posts/{id}:
+    get:
+      description: get a post by ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Post with ID found
+          schema:
+            $ref: '#/definitions/response.Post'
+        "404":
+          description: Post with ID not found
+          schema:
+            $ref: '#/definitions/response.Response'
+        default:
+          description: Unable to get post with id
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: get a post
+      tags:
+      - posts
   /signin:
     post:
       consumes:
