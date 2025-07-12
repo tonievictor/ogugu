@@ -54,7 +54,7 @@ func (ss *SubscriptionService) GetSubByID(ctx context.Context, id string) (model
 	defer cancel()
 
 	query := `
-		SELECT sub.id, sub.user_id, sub.rss_id, sub.created_at, sub.updated_at,
+		SELECT sub.id, sub.user_id, sub.created_at, sub.updated_at,
 		rss.id, rss.title, rss.link, rss.created_at, rss.updated_at 
 		FROM subscriptions sub
 		INNER JOIN rss ON rss.id = sub.rss_id
@@ -89,7 +89,7 @@ func (ss *SubscriptionService) GetSubs(ctx context.Context) ([]models.Subscripti
 	defer cancel()
 
 	query := `
-		SELECT sub.id, sub.user_id, sub.rss_id, sub.created_at, sub.updated_at,
+		SELECT sub.id, sub.user_id, sub.created_at, sub.updated_at,
 		rss.id, rss.title, rss.link, rss.created_at, rss.updated_at 
 		FROM subscriptions sub
 		INNER JOIN rss ON rss.id = sub.rss_id;
@@ -130,7 +130,7 @@ func (ss *SubscriptionService) GetSubsByUserID(ctx context.Context, user_id stri
 	defer cancel()
 
 	query := `
-		SELECT sub.id, sub.user_id, sub.rss_id, sub.created_at, sub.updated_at,
+		SELECT sub.id, sub.user_id, sub.created_at, sub.updated_at,
 		rss.id, rss.title, rss.link, rss.created_at, rss.updated_at 
 		FROM subscriptions sub
 		INNER JOIN rss ON rss.id = sub.rss_id
@@ -155,9 +155,11 @@ func (ss *SubscriptionService) GetSubsByUserID(ctx context.Context, user_id stri
 			&sub.RSS.CreatedAt,
 			&sub.RSS.UpdatedAt,
 		)
+
 		if err != nil {
 			return nil, err
 		}
+
 		subs = append(subs, sub)
 	}
 
