@@ -2,6 +2,18 @@ package models
 
 import "time"
 
+type Subscription struct {
+	ID        string    `json:"id"`
+	UserID    string    `json:"user_id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	RSS       RssFeed   `json:"rss"`
+}
+
+type CreateSubscription struct {
+	RssID string `json:"rss_id"`
+}
+
 type User struct {
 	ID        string    `json:"id"`
 	Username  string    `json:"username"`
