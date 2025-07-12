@@ -52,7 +52,7 @@ func (u *UserService) GetUserByID(ctx context.Context, id string) (models.User, 
 	return user, nil
 }
 
-func (u *UserService) DeleteUserByID(ctx context.Context, id string) error {
+func (u *UserService) DeleteUserByID(ctx context.Context, id string) (int64, error) {
 	spanctx, span := tracer.Start(ctx, "delete user")
 	defer span.End()
 
@@ -60,8 +60,11 @@ func (u *UserService) DeleteUserByID(ctx context.Context, id string) error {
 	defer cancel()
 
 	query := `DELETE FROM users WHERE id = $1;`
-	_, err := u.db.ExecContext(dbctx, query, id)
-	return err
+	r, err := u.db.ExecContext(dbctx, query, id)
+	if err != nil {
+		return 0, err
+	}
+	return r.RowsAffected()
 }
 
 func (u *UserService) CreateUser(ctx context.Context, id string, body models.CreateUserBody) (models.User, error) {

@@ -58,7 +58,10 @@ func TestPostService(t *testing.T) {
 	})
 
 	t.Run("delete post by id", func(t *testing.T) {
-		err := ps.DeletePost(context.Background(), id)
+		n, err := ps.DeletePost(context.Background(), id)
 		require.NoError(t, err)
+		if n != 1 {
+			t.Error("expected to delete one entry from db")
+		}
 	})
 }

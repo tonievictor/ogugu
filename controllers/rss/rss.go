@@ -89,7 +89,7 @@ func (rc *RssController) DeleteRssByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = rc.rssService.DeleteByID(spanctx, id)
+	_, err = rc.rssService.DeleteByID(spanctx, id)
 	if err != nil {
 		rc.log.Error("An error occured while deleting an rss entry", zap.String("id", id), zap.Error(err))
 		status, message := pgerrors.Details(err)

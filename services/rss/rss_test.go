@@ -59,8 +59,10 @@ func TestRssService(t *testing.T) {
 	})
 
 	t.Run("delete rss", func(t *testing.T) {
-		err := rs.DeleteByID(context.Background(), id)
-
+		n, err := rs.DeleteByID(context.Background(), id)
 		require.NoError(t, err)
+		if n != 1 {
+			t.Error("expected to delete one entry from db")
+		}
 	})
 }

@@ -23,7 +23,7 @@ func New(db *sql.DB) *RssService {
 	}
 }
 
-func (r *RssService) DeleteByID(ctx context.Context, id string) error {
+func (r *RssService) DeleteByID(ctx context.Context, id string) (int64, error) {
 	spanctx, span := tracer.Start(ctx, "delete rss feed by id")
 	defer span.End()
 
@@ -31,8 +31,11 @@ func (r *RssService) DeleteByID(ctx context.Context, id string) error {
 	defer cancel()
 
 	query := "DELETE FROM rss WHERE id = $1;"
-	_, err := r.db.ExecContext(dbctx, query, id)
-	return err
+	res, err := r.db.ExecContext(dbctx, query, id)
+	if err != nil {
+		return 0, err
+	}
+	return res.RowsAffected()
 }
 
 func (r *RssService) UpdateLink(ctx context.Context, id, value string) (models.RssFeed, error) {

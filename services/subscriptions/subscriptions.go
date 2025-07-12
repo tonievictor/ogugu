@@ -23,6 +23,22 @@ func New(db *sql.DB) *SubscriptionService {
 	}
 }
 
+func (ss *SubscriptionService) DeleteSub(ctx context.Context, user_id, rss_id string) (int64, error) {
+	spanctx, span := tracer.Start(ctx, "delete a subscription")
+	defer span.End()
+
+	dbctx, cancel := context.WithTimeout(spanctx, dbtimeout)
+	defer cancel()
+
+	query := `DELETE FROM subscriptions WHERE user_id = $1 AND rss_id = $2;`
+	r, err := ss.db.ExecContext(dbctx, query, user_id, rss_id)
+	if err != nil {
+		return 0, err
+	}
+
+	return r.RowsAffected()
+}
+
 func (ss *SubscriptionService) CreateSub(ctx context.Context, id, user_id, rss_id string) (models.Subscription, error) {
 	spanctx, span := tracer.Start(ctx, "create a new subscription")
 	defer span.End()
@@ -155,7 +171,6 @@ func (ss *SubscriptionService) GetSubsByUserID(ctx context.Context, user_id stri
 			&sub.RSS.CreatedAt,
 			&sub.RSS.UpdatedAt,
 		)
-
 		if err != nil {
 			return nil, err
 		}

@@ -122,7 +122,7 @@ func (ps *PostService) Fetch(ctx context.Context) ([]models.Post, error) {
 	return posts, nil
 }
 
-func (ps *PostService) DeletePost(ctx context.Context, id string) error {
+func (ps *PostService) DeletePost(ctx context.Context, id string) (int64, error) {
 	spanctx, span := tracer.Start(ctx, "delete post by id")
 	defer span.End()
 
@@ -130,6 +130,9 @@ func (ps *PostService) DeletePost(ctx context.Context, id string) error {
 	defer cancel()
 
 	query := `DELETE FROM posts WHERE id = $1;`
-	_, err := ps.db.ExecContext(dbctx, query, id)
-	return err
+	r, err := ps.db.ExecContext(dbctx, query, id)
+	if err != nil {
+		return 0, err
+	}
+	return r.RowsAffected()
 }

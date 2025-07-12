@@ -72,4 +72,13 @@ func TestSubscriptionService(t *testing.T) {
 		_, err := ss.GetSubByID(context.Background(), subid)
 		require.NoError(t, err)
 	})
+
+	t.Run("unsubscribe", func(t *testing.T) {
+		n, err := ss.DeleteSub(context.Background(), userid, rssid)
+		require.NoError(t, err)
+
+		if n != 2 {
+			t.Error("expected to delete one entry from subscriptions table")
+		}
+	})
 }

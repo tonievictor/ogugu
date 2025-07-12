@@ -71,7 +71,11 @@ func TestUserService(t *testing.T) {
 	})
 
 	t.Run("delete user", func(t *testing.T) {
-		err := us.DeleteUserByID(context.Background(), id)
+		n, err := us.DeleteUserByID(context.Background(), id)
 		require.NoError(t, err)
+
+		if n != 1 {
+			t.Error("expected to delete one entry from db")
+		}
 	})
 }
