@@ -55,7 +55,7 @@ func TestSubscriptionService(t *testing.T) {
 
 	t.Run("create subscription", func(t *testing.T) {
 		_, err := ss.CreateSub(context.Background(), "id2", userid, rssid)
-		require.NoError(t, err)
+		require.Error(t, err)
 	})
 
 	t.Run("get subscriptions", func(t *testing.T) {
@@ -77,7 +77,7 @@ func TestSubscriptionService(t *testing.T) {
 		n, err := ss.DeleteSub(context.Background(), userid, rssid)
 		require.NoError(t, err)
 
-		if n != 2 {
+		if n != 1 {
 			t.Error("expected to delete one entry from subscriptions table")
 		}
 	})
