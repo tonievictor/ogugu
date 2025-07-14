@@ -69,3 +69,8 @@ type RssFeeds struct {
 	Message string
 	Data    []models.RssFeed
 }
+
+type Subscription struct {
+	Message string
+	Data    models.Subscription
+}

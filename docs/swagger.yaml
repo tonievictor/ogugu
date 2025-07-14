@@ -1,3 +1,4 @@
+basePath: /v1/
 definitions:
   models.CreateRssBody:
     properties:
@@ -65,6 +66,26 @@ definitions:
     - email
     - password
     type: object
+  models.Subscription:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      rss:
+        $ref: '#/definitions/models.RssFeed'
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.SubscriptionBody:
+    properties:
+      rss_id:
+        type: string
+    required:
+    - rss_id
+    type: object
   models.User:
     properties:
       avatar:
@@ -125,6 +146,13 @@ definitions:
       message:
         type: string
     type: object
+  response.Subscription:
+    properties:
+      data:
+        $ref: '#/definitions/models.Subscription'
+      message:
+        type: string
+    type: object
   response.User:
     properties:
       data:
@@ -139,8 +167,12 @@ definitions:
       message:
         type: string
     type: object
+host: localhost:8080
 info:
   contact: {}
+  description: An API for an RSS aggregator
+  title: Ogugu API
+  version: "0.1"
 paths:
   /feed:
     get:
@@ -161,7 +193,11 @@ paths:
           schema:
             $ref: '#/definitions/response.Response'
         "500":
-          description: Internal server error
+          description: An error occured on the server
+          schema:
+            $ref: '#/definitions/response.Response'
+        default:
+          description: An error occured
           schema:
             $ref: '#/definitions/response.Response'
       summary: Find all RSS feeds
@@ -186,11 +222,15 @@ paths:
           schema:
             $ref: '#/definitions/response.RssFeed'
         "400":
-          description: Invalid request body
+          description: Invalid or malformed request body
           schema:
             $ref: '#/definitions/response.Response'
         "500":
-          description: Unable to create feed
+          description: An error occured on the server
+          schema:
+            $ref: '#/definitions/response.Response'
+        default:
+          description: An error occured
           schema:
             $ref: '#/definitions/response.Response'
       summary: Create a new RSS feed
@@ -221,7 +261,11 @@ paths:
           schema:
             $ref: '#/definitions/response.Response'
         "500":
-          description: Internal server error
+          description: An error occured on the server
+          schema:
+            $ref: '#/definitions/response.Response'
+        default:
+          description: An error occured
           schema:
             $ref: '#/definitions/response.Response'
       summary: Delete an RSS feed by its ID
@@ -243,7 +287,7 @@ paths:
           schema:
             $ref: '#/definitions/response.RssFeed'
         "400":
-          description: Invalid request
+          description: Invalid or malformed request body
           schema:
             $ref: '#/definitions/response.Response'
         "404":
@@ -251,7 +295,11 @@ paths:
           schema:
             $ref: '#/definitions/response.Response'
         "500":
-          description: Internal server error
+          description: An error occured on the server
+          schema:
+            $ref: '#/definitions/response.Response'
+        default:
+          description: An error occured
           schema:
             $ref: '#/definitions/response.Response'
       summary: Find an RSS feed by its ID
@@ -361,4 +409,79 @@ paths:
       summary: sign up
       tags:
       - account
+  /subscriptions:
+    delete:
+      consumes:
+      - application/json
+      description: unsubscribe from an rss feed
+      parameters:
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.SubscriptionBody'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: unsubscribe
+      tags:
+      - subscription
+    post:
+      consumes:
+      - application/json
+      description: subscribe to an rss feed
+      parameters:
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.SubscriptionBody'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.Subscription'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: subscribe
+      tags:
+      - subscription
+securityDefinitions:
+  BearerAuth:
+    description: Enter your auth token in the format **Bearer &lt;token&gt;**
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

@@ -2,6 +2,8 @@ package models
 
 import "time"
 
+const AuthSession = "AuthSession"
+
 type Subscription struct {
 	ID        string    `json:"id"`
 	UserID    string    `json:"user_id"`
@@ -10,8 +12,8 @@ type Subscription struct {
 	RSS       RssFeed   `json:"rss"`
 }
 
-type CreateSubscription struct {
-	RssID string `json:"rss_id"`
+type SubscriptionBody struct {
+	RssID string `json:"rss_id" validate:"required"`
 }
 
 type User struct {

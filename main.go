@@ -17,20 +17,24 @@ import (
 
 	"ogugu/database"
 	"ogugu/database/cache"
-	"ogugu/docs"
+	_ "ogugu/docs"
 	"ogugu/router"
 	"ogugu/telemetry"
 )
 
+// @title Ogugu API
+// @description An API for an RSS aggregator
+// @version 0.1
+
+// @host localhost:8080
+// @BasePath  /v1/
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Enter your auth token in the format **Bearer &lt;token&gt;**
 func main() {
 	dotenv.Config()
-
-	docs.SwaggerInfo.Title = "Ogugu"
-	docs.SwaggerInfo.Description = "An RSS feed reader"
-	docs.SwaggerInfo.Version = "0.1"
-	docs.SwaggerInfo.Host = "localhost:8080" // this should be dynamic
-	docs.SwaggerInfo.BasePath = "/v1/"
-	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 
 	log, _ := zap.NewProduction()
 	db, err := database.New("pgx", os.Getenv("DATABASE_URL"))

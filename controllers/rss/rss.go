@@ -43,7 +43,8 @@ func New(l *zap.Logger, r *rss.RssService) *RssController {
 // @Success 200 {object} response.RssFeeds "RSS Feeds found"
 // @Failure 400 {object} response.Response "Invalid request"
 // @Failure 404 {object} response.Response "RSS Feed not found"
-// @Failure 500 {object} response.Response "Internal server error"
+// @Failure 500 {object} response.Response "An error occured on the server"
+// @Failure default {object} response.Response "An error occured"
 // @Router /feed [get]
 func (rc *RssController) Fetch(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "fetch all rss")
@@ -73,7 +74,8 @@ func (rc *RssController) Fetch(w http.ResponseWriter, r *http.Request) {
 // @Success 204 {object} response.Response "RSS Feed deleted"
 // @Failure 400 {object} response.Response "Invalid request"
 // @Failure 404 {object} response.Response "RSS Feed not found"
-// @Failure 500 {object} response.Response "Internal server error"
+// @Failure 500 {object} response.Response "An error occured on the server"
+// @Failure default {object} response.Response "An error occured"
 // @Router /feed/{id} [delete]
 func (rc *RssController) DeleteRssByID(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "delete rss by id")
@@ -107,9 +109,10 @@ func (rc *RssController) DeleteRssByID(w http.ResponseWriter, r *http.Request) {
 // @Produce  json
 // @Param id path string true "ID of the RSS feed to retrieve"
 // @Success 200 {object} response.RssFeed "RSS Feed found"
-// @Failure 400 {object} response.Response "Invalid request"
+// @Failure 400 {object} response.Response "Invalid or malformed request body"
 // @Failure 404 {object} response.Response "RSS Feed not found"
-// @Failure 500 {object} response.Response "Internal server error"
+// @Failure 500 {object} response.Response "An error occured on the server"
+// @Failure default {object} response.Response "An error occured"
 // @Router /feed/{id} [get]
 func (rc *RssController) FindRssByID(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "fetch rss by id")
@@ -134,8 +137,9 @@ func (rc *RssController) FindRssByID(w http.ResponseWriter, r *http.Request) {
 // @Produce  json
 // @Param body body models.CreateRssBody true "Create a new RSS feed"
 // @Success 201 {object} response.RssFeed "RSS Feed created"
-// @Failure 400 {object} response.Response "Invalid request body"
-// @Failure 500 {object} response.Response "Unable to create feed"
+// @Failure 400 {object} response.Response "Invalid or malformed request body"
+// @Failure 500 {object} response.Response "An error occured on the server"
+// @Failure default {object} response.Response "An error occured"
 // @Router /feed [post]
 func (rc *RssController) CreateRss(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "create rss feed")

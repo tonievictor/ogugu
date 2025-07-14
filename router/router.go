@@ -13,9 +13,11 @@ import (
 	authcontroller "ogugu/controllers/auth"
 	postcontroller "ogugu/controllers/posts"
 	rsscontroller "ogugu/controllers/rss"
+	subcontroller "ogugu/controllers/subscriptions"
 	authservice "ogugu/services/auth"
 	postservice "ogugu/services/posts"
 	rssservice "ogugu/services/rss"
+	subservice "ogugu/services/subscriptions"
 	userservice "ogugu/services/users"
 )
 
@@ -45,6 +47,10 @@ func Routes(db *sql.DB, cache *redis.Client, logger *zap.Logger) http.Handler {
 	pc := postcontroller.New(logger, postservice.New(db))
 	v1.Get("/posts", pc.FetchPosts)
 	v1.Get("/posts/{id}", pc.GetPostByID)
+
+	sc := subcontroller.New(cache, logger, subservice.New(db))
+	v1.Post("/subscriptions", IsAuthenticated(cache, logger, sc.Subscribe))
+	v1.Delete("/subscriptions", IsAuthenticated(cache, logger, sc.Unsubscribe))
 
 	r.Mount("/v1", v1)
 	return r

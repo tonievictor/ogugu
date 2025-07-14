@@ -25,7 +25,6 @@ func New(log *zap.Logger, ps *posts.PostService) *PostsController {
 	}
 }
 
-
 // @Summary      get all posts
 // @Description  get all posts
 // @Tags         posts
