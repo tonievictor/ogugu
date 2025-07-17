@@ -52,6 +52,7 @@ func Routes(db *sql.DB, cache *redis.Client, logger *zap.Logger) http.Handler {
 	sc := subcontroller.New(cache, logger, subservice.New(db))
 	v1.Post("/subscriptions", IsAuthenticated(cache, logger, sc.Subscribe))
 	v1.Delete("/subscriptions", IsAuthenticated(cache, logger, sc.Unsubscribe))
+	v1.Get("/subscriptions/{id}", IsAuthenticated(cache, logger, sc.GetUserSubs))
 
 	r.Mount("/v1", v1)
 	return r

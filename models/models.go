@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-const AuthSession = "AuthSession"
+const AuthSessionKey = "AuthSession"
 
 type Subscription struct {
 	ID        string    `json:"id"`

@@ -57,7 +57,7 @@ func IsAuthenticated(cache *redis.Client, log *zap.Logger, next http.HandlerFunc
 			return
 		}
 
-		ctx := context.WithValue(spanctx, models.AuthSession, session)
+		ctx := context.WithValue(spanctx, models.AuthSessionKey, session)
 		req := r.WithContext(ctx)
 
 		next(w, req)

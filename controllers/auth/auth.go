@@ -55,8 +55,7 @@ func (ac *AuthController) Signout(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "sign out")
 	defer span.End()
 
-	sess := r.Context().Value(models.AuthSession).(models.Session)
-	sess.ExpiryTime = time.Now()
+	sess := r.Context().Value(models.AuthSessionKey).(models.Session)
 
 	err := ac.cache.SetEx(spanctx, sess.ID, "", time.Second).Err()
 	if err != nil {

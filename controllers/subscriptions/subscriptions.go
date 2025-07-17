@@ -38,6 +38,45 @@ func New(cache *redis.Client,
 	}
 }
 
+// @Summary			 get subscriptions
+// @Description  get current user's subscriptions
+// @Tags				 subscription
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param id path string true "user id"
+// @Success 200  {object} response.Subscription
+// @Failure 400  {object} response.Response
+// @Failure 500  {object} response.Response
+// @Failure default  {object} response.Response
+// @Router /subscriptions/{id} [get]
+func (sc *SubscriptionController) GetUserSubs(w http.ResponseWriter, r *http.Request) {
+	spanctx, span := tracer.Start(r.Context(), "get user's subscriptions")
+	defer span.End()
+
+	id := r.PathValue("id")
+	session := r.Context().Value(models.AuthSessionKey).(models.Session)
+	if session.UserID != id {
+		sc.log.Error("user is not authorized to make this request")
+		response.Error(w, "You are not authorized to make this request", http.StatusUnauthorized, sc.log)
+		return
+	}
+
+	subs, err := sc.subservice.GetSubsByUserID(spanctx, id)
+	if err != nil {
+		sc.log.Error("could not get user's subscriptions", zap.Error(err))
+		status, message := pgerrors.Details(err)
+		response.Error(w, message, status, sc.log)
+		return
+	}
+
+	msg := "Resources found"
+	if len(subs) == 0 {
+		msg = "No resource"
+	}
+	response.Success(w, msg, http.StatusOK, subs, sc.log)
+}
+
 // @Summary			 subscribe
 // @Description  subscribe to an rss feed
 // @Tags         subscription
@@ -74,7 +113,7 @@ func (sc *SubscriptionController) Subscribe(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	u := r.Context().Value(models.AuthSession).(models.Session)
+	u := r.Context().Value(models.AuthSessionKey).(models.Session)
 	id := ulid.Make().String()
 	sub, err := sc.subservice.CreateSub(spanctx, id, u.UserID, body.RssID)
 	if err != nil {
@@ -123,7 +162,7 @@ func (sc *SubscriptionController) Unsubscribe(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	u := r.Context().Value(models.AuthSession).(models.Session)
+	u := r.Context().Value(models.AuthSessionKey).(models.Session)
 	_, err = sc.subservice.DeleteSub(spanctx, u.UserID, body.RssID)
 	if err != nil {
 		sc.log.Error("could not delete subscription", zap.Error(err))
