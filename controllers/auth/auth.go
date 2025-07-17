@@ -2,19 +2,21 @@ package auth
 
 import (
 	"encoding/json"
+	"net/http"
+	"time"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/oklog/ulid/v2"
 	"github.com/redis/go-redis/v9"
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
-	"net/http"
+
 	"ogugu/controllers/common/pgerrors"
 	"ogugu/controllers/common/response"
 	"ogugu/models"
 	"ogugu/services/auth"
 	"ogugu/services/users"
-	"time"
 )
 
 var (
@@ -36,6 +38,35 @@ func New(c *redis.Client, l *zap.Logger, u *users.UserService, a *auth.AuthServi
 		userService: u,
 		authService: a,
 	}
+}
+
+// @Summary			 sign out
+// @Description  sign out from current session
+// @Security     BearerAuth
+// @Tags				 account
+// @Accept       json
+// @Produce      json
+// @Sucess 204
+// @Failure 401	{object} response.Response
+// @Failure 500	{object} response.Response
+// @Failure default	{object} response.Response
+// @Router /signout [delete]
+func (ac *AuthController) Signout(w http.ResponseWriter, r *http.Request) {
+	spanctx, span := tracer.Start(r.Context(), "sign out")
+	defer span.End()
+
+	sess := r.Context().Value(models.AuthSession).(models.Session)
+	sess.ExpiryTime = time.Now()
+
+	err := ac.cache.SetEx(spanctx, sess.ID, "", time.Second).Err()
+	if err != nil {
+		ac.log.Error("could not delete user session", zap.Error(err))
+		response.Error(w, "An error occured while deleting the session", http.StatusInternalServerError, ac.log)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // @Summary			 sign in
@@ -96,7 +127,9 @@ func (ac *AuthController) Signin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	sessionid := ulid.Make().String()
 	session, err := json.Marshal(models.Session{
+		ID:         sessionid,
 		UserID:     user.ID,
 		CreatedAt:  time.Now(),
 		ExpiryTime: time.Now().Add(time.Hour * 24 * 3),
@@ -107,7 +140,6 @@ func (ac *AuthController) Signin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessionid := ulid.Make().String()
 	err = ac.cache.Set(spanctx, sessionid, session, time.Second*259200).Err()
 	if err != nil && err != redis.Nil {
 		ac.log.Error("unable to create session", zap.Error(err))

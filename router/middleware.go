@@ -47,7 +47,7 @@ func IsAuthenticated(cache *redis.Client, log *zap.Logger, next http.HandlerFunc
 		err = json.Unmarshal([]byte(value), &session)
 		if err != nil {
 			log.Error("session token cannot be validated into a session", zap.Error(err))
-			response.Error(w, "Invalid token", http.StatusInternalServerError, log)
+			response.Error(w, "The provided auth token is invalid", http.StatusUnauthorized, log)
 			return
 		}
 

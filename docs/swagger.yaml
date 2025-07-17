@@ -379,6 +379,31 @@ paths:
       summary: sign in
       tags:
       - account
+  /signout:
+    delete:
+      consumes:
+      - application/json
+      description: sign out from current session
+      produces:
+      - application/json
+      responses:
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: sign out
+      tags:
+      - account
   /signup:
     post:
       consumes:

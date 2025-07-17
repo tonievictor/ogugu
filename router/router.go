@@ -43,6 +43,7 @@ func Routes(db *sql.DB, cache *redis.Client, logger *zap.Logger) http.Handler {
 	ac := authcontroller.New(cache, logger, userservice.New(db), authservice.New(db))
 	v1.Post("/signup", ac.Signup)
 	v1.Post("/signin", ac.Signin)
+	v1.Delete("/signout", IsAuthenticated(cache, logger, ac.Signout))
 
 	pc := postcontroller.New(logger, postservice.New(db))
 	v1.Get("/posts", pc.FetchPosts)

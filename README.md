@@ -14,7 +14,7 @@ Ogugu is a backend application for an RSS feed aggregator and reader. It allows 
 
 ## Prerequisites 
 1. [Golang 1.24+](https://go.dev/doc/install)
-2. Docker — For containerized services (PostgreSQL & Redis)
+2. Docker - For containerized services (PostgreSQL & Redis)
 3. Git
 4. [Golang-Migrate](https://github.com/golang-migrate/migrate?tab=readme-ov-file)
 5. [Swag Cli](https://github.com/swaggo/swag) - For API testing
@@ -83,6 +83,6 @@ swag init
 go run main.go
 ```
 3. Access the Swagger UI to test the API at `http://localhost:<port>/v1/swagger/index.html`
-### View monitoring dashboards (if set up):
+### View monitoring dashboard (if set up):
 - Navigate to: http://localhost:3000
 - Login credentials can be found in [terraform/values/grafana.yaml](./terraform/values/grafana.yaml) 

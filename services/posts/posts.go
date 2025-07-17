@@ -9,7 +9,7 @@ import (
 	"ogugu/models"
 )
 
-var tracer = otel.Tracer("RssFeed Service")
+var tracer = otel.Tracer("posts service")
 
 const dbtimeout = time.Second * 3
 

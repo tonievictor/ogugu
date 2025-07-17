@@ -73,6 +73,7 @@ type SigninBody struct {
 }
 
 type Session struct {
+	ID         string
 	UserID     string
 	CreatedAt  time.Time
 	ExpiryTime time.Time
