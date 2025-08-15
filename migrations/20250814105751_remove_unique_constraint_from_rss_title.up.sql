@@ -1,0 +1,2 @@
+ALTER TABLE IF EXISTS rss
+DROP CONSTRAINT rss_name_key;

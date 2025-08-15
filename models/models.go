@@ -81,7 +81,7 @@ type Session struct {
 
 type RSSMeta struct {
 	Channel struct {
-		LastBuildDate string `xml:"lastBuildDate" validate:"required,datetime"`
+		LastBuildDate string `xml:"lastBuildDate" validate:"datetime"`
 		Title         string `xml:"title" validate:"required"`
 		Description   string `xml:"description" validate:"required"`
 	} `xml:"channel"`

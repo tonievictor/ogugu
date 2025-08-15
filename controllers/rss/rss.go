@@ -1,12 +1,10 @@
 package rss
 
 import (
-	"context"
 	"encoding/json"
 	"encoding/xml"
 	"io"
 	"net/http"
-	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/oklog/ulid/v2"
@@ -165,48 +163,46 @@ func (rc *RssController) CreateRss(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	meta, msg, err := getRssInfo(body.Link, spanctx)
+	meta, err := getRSSMeta(body.Link)
 	if err != nil {
-		rc.log.Error(msg, zap.Error(err))
-		response.Error(w, msg, http.StatusBadRequest, rc.log)
+		rc.log.Error(err.Error(), zap.Error(err))
+		response.Error(w, "an error occured while fetching rss metadata", http.StatusUnprocessableEntity, rc.log)
 		return
+	}
+
+	if meta.Channel.Title == "" {
+		meta.Channel.Title = "Untitled Feed"
 	}
 
 	id := ulid.Make().String()
 	feed, err := rc.rssService.Create(spanctx, id, body.Link, meta)
 	if err != nil {
-		rc.log.Error("unable to create new rss entry", zap.Error(err))
-		status, message := pgerrors.Details(err)
-		response.Error(w, message, status, rc.log)
+		status, msg := pgerrors.Details(err)
+		rc.log.Error("could not create new feed", zap.Error(err))
+		response.Error(w, msg, status, rc.log)
 		return
 	}
 
-	response.Success(w, "Rss Feed created", http.StatusCreated, feed, rc.log)
+	response.Success(w, "rss feed created successfully", http.StatusCreated, feed, rc.log)
 }
 
-func getRssInfo(url string, ctx context.Context) (models.RSSMeta, string, error) {
-	_, span := tracer.Start(ctx, "get rss metadata")
-	defer span.End()
-	client := http.Client{
-		Timeout: time.Second * 10,
+func getRSSMeta(link string) (models.RSSMeta, error) {
+	res, err := http.Get(link)
+	if err != nil {
+		return models.RSSMeta{}, err
 	}
 
-	res, err := client.Get(url)
-	if err != nil || res.StatusCode != 200 {
-		return models.RSSMeta{}, "could not fetch from rss link", err
-	}
-
+	body, err := io.ReadAll(res.Body)
 	defer res.Body.Close()
-	data, err := io.ReadAll(res.Body)
 	if err != nil {
-		return models.RSSMeta{}, "an error occured while reading rss body", err
+		return models.RSSMeta{}, err
 	}
 
-	var body models.RSSMeta
-	err = xml.Unmarshal(data, &body)
+	var meta models.RSSMeta
+	err = xml.Unmarshal(body, &meta)
 	if err != nil {
-		return models.RSSMeta{}, "The URL does not point to a valid RSS feed", err
+		return models.RSSMeta{}, err
 	}
 
-	return body, "", nil
+	return meta, nil
 }

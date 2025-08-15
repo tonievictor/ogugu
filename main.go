@@ -58,20 +58,22 @@ func InitServer(db *sql.DB, rds *redis.Client, log *zap.Logger) {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
 	defer stop()
 
-	// set up tracing
-	// exp, err := telemetry.NewConsoleExporter()
-	// to be used in production setting
 	exp, err := telemetry.NewOtlpExporter(ctx)
 	if err != nil {
 		log.Error("cannot setup otlp exporter", zap.Error(err))
 		return
 	}
-	tp, err := telemetry.NewTraceProvider(exp)
+	res, err := telemetry.NewResource()
 	if err != nil {
-		log.Error("cannot setup otlp exporter", zap.Error(err))
+		log.Error("cannot create telemetry resource", zap.Error(err))
 		return
 	}
-	defer func() { _ = tp.Shutdown(ctx) }()
+	tp := telemetry.NewTraceProvider(res, exp)
+
+	defer func() {
+		_ = tp.Shutdown(ctx)
+	}()
+
 	otel.SetTracerProvider(tp)
 
 	server := http.Server{

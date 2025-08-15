@@ -89,8 +89,8 @@ func (r *RssService) Fetch(ctx context.Context) ([]models.RssFeed, error) {
 		err := rows.Scan(
 			&rss.ID,
 			&rss.Title,
-			&rss.Description,
 			&rss.Link,
+			&rss.Description,
 			&rss.CreatedAt,
 			&rss.UpdatedAt,
 		)
@@ -116,8 +116,8 @@ func (r *RssService) FindByID(ctx context.Context, id string) (models.RssFeed, e
 	err := row.Scan(
 		&rss.ID,
 		&rss.Title,
-		&rss.Description,
 		&rss.Link,
+		&rss.Description,
 		&rss.CreatedAt,
 		&rss.UpdatedAt,
 	)
@@ -142,8 +142,8 @@ func (r *RssService) FindByLink(ctx context.Context, link string) (models.RssFee
 	err := row.Scan(
 		&rss.ID,
 		&rss.Title,
-		&rss.Description,
 		&rss.Link,
+		&rss.Description,
 		&rss.CreatedAt,
 		&rss.UpdatedAt,
 	)
@@ -166,14 +166,14 @@ func (r *RssService) Create(ctx context.Context, id, link string, body models.RS
 	query := `
 		INSERT INTO rss (id, title, link, description, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6)
-		RETURNING id, title, description, link, created_at, updated_at;
+		RETURNING id, title, link, description, created_at, updated_at;
 	`
 	row := r.db.QueryRowContext(dbctx, query, id, body.Channel.Title, link, body.Channel.Description, time.Now(), time.Now())
 	err := row.Scan(
 		&rss.ID,
 		&rss.Title,
-		&rss.Description,
 		&rss.Link,
+		&rss.Description,
 		&rss.CreatedAt,
 		&rss.UpdatedAt,
 	)

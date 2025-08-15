@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"github.com/redis/go-redis/v9"
 	"github.com/swaggo/http-swagger/v2"
 	"go.uber.org/zap"
@@ -24,6 +25,14 @@ import (
 func Routes(db *sql.DB, cache *redis.Client, logger *zap.Logger) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins: []string{"https://*", "http://*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: false,
+		MaxAge:           300, 
+	}))
 
 	v1 := chi.NewRouter()
 	v1.Get("/health", func(w http.ResponseWriter, r *http.Request) {
