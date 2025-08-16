@@ -29,7 +29,7 @@ func TestPostService(t *testing.T) {
 
 	t.Run("test create rss", func(t *testing.T) {
 		var meta models.RSSMeta
-		meta.Channel.LastBuildDate = "Thu, 11 Jul 2025 15:04:05 GMT"
+		meta.Channel.LastModified = "Thu, 11 Jul 2025 15:04:05 GMT"
 		meta.Channel.Title = "Example RSS Feed"
 		meta.Channel.Description = "This is a description of the RSS feed."
 
@@ -38,7 +38,7 @@ func TestPostService(t *testing.T) {
 	})
 
 	t.Run("test post creation", func(t *testing.T) {
-		p := models.CreatePost{Title: "new", Description: "actually", Link: "www.whocares.com", PubDate: time.Now()}
+		p := models.CreatePost{Title: "new", Description: "actually", Link: "www.whocares.com", PubDate: time.Now().Format(time.RFC1123)}
 		_, err := ps.CreatePost(context.Background(), id, rss_id, p)
 		require.NoError(t, err)
 	})

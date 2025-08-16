@@ -180,3 +180,43 @@ func (ss *SubscriptionService) GetSubsByUserID(ctx context.Context, user_id stri
 
 	return subs, nil
 }
+
+func (ss *SubscriptionService) GetPostFromSubScriptions(ctx context.Context, user_id string) ([]models.Post, error) {
+	spanctx, span := tracer.Start(ctx, "get post that user from rss subscriptions")
+	defer span.End()
+
+	dbctx, cancel := context.WithTimeout(spanctx, dbtimeout)
+	defer cancel()
+	query := `
+		SELECT posts.id, posts.title, posts.description, posts.link, posts.pubdate, posts.created_at, posts.updated_at
+		FROM subscriptions sub
+		INNER JOIN rss ON rss.id = sub.rss_id
+		INNER JOIN posts ON posts.rss_id = sub.rss_id
+		WHERE sub.user_id = $1;
+	`
+	rows, err := ss.db.QueryContext(dbctx, query, user_id)
+	if err != nil {
+		return nil, err
+	}
+
+	var posts []models.Post
+	for rows.Next() {
+		var post models.Post
+		err := rows.Scan(
+			&post.ID,
+			&post.Title,
+			&post.Description,
+			&post.Link,
+			&post.PubDate,
+			&post.CreatedAt,
+			&post.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		posts = append(posts, post)
+	}
+
+	return posts, nil
+}

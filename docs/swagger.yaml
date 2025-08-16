@@ -108,6 +108,15 @@ definitions:
       user:
         $ref: '#/definitions/models.User'
     type: object
+  response.FeedPosts:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.Post'
+        type: array
+      message:
+        type: string
+    type: object
   response.Post:
     properties:
       data:
@@ -468,6 +477,34 @@ paths:
       summary: unsubscribe
       tags:
       - subscription
+    get:
+      consumes:
+      - application/json
+      description: get current user's subscriptions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Subscription'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: get subscriptions
+      tags:
+      - subscription
     post:
       consumes:
       - application/json
@@ -503,24 +540,18 @@ paths:
       summary: subscribe
       tags:
       - subscription
-  /subscriptions/{id}:
+  /subscriptions/posts:
     get:
       consumes:
       - application/json
-      description: get current user's subscriptions
-      parameters:
-      - description: user id
-        in: path
-        name: id
-        required: true
-        type: string
+      description: get posts from feed that user is subscribed to
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.Subscription'
+            $ref: '#/definitions/response.FeedPosts'
         "400":
           description: Bad Request
           schema:
@@ -535,7 +566,7 @@ paths:
             $ref: '#/definitions/response.Response'
       security:
       - BearerAuth: []
-      summary: get subscriptions
+      summary: get posts
       tags:
       - subscription
 securityDefinitions:

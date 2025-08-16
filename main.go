@@ -15,6 +15,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 
+	"ogugu/job"
 	"ogugu/database"
 	"ogugu/database/cache"
 	_ "ogugu/docs"
@@ -48,6 +49,7 @@ func main() {
 		return
 	}
 
+	go job.Start(db, log)
 	InitServer(db, rds, log)
 }
 

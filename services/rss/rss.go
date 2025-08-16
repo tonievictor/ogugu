@@ -3,6 +3,7 @@ package rss
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"go.opentelemetry.io/otel"
@@ -38,7 +39,7 @@ func (r *RssService) DeleteByID(ctx context.Context, id string) (int64, error) {
 	return res.RowsAffected()
 }
 
-func (r *RssService) UpdateLink(ctx context.Context, id, value string) (models.RssFeed, error) {
+func (r *RssService) UpdateField(ctx context.Context, id, field, value any) (models.RssFeed, error) {
 	spanctx, span := tracer.Start(ctx, "update rss feed")
 	defer span.End()
 
@@ -46,12 +47,12 @@ func (r *RssService) UpdateLink(ctx context.Context, id, value string) (models.R
 	dbctx, cancel := context.WithTimeout(spanctx, dbtimeout)
 	defer cancel()
 
-	query := `
+	query := fmt.Sprintf(`
 		UPDATE rss
-		SET link = $1, updated_at = $2
+		SET %s = $1, updated_at = $2
 		WHERE id = $3
-		RETURNING id, title, link, description, created_at, updated_at;
-	`
+		RETURNING id, title, link, description, fetched, last_modified, created_at, updated_at;
+	`, field)
 
 	row := r.db.QueryRowContext(dbctx, query, value, time.Now(), id)
 	err := row.Scan(
@@ -59,6 +60,8 @@ func (r *RssService) UpdateLink(ctx context.Context, id, value string) (models.R
 		&rss.Title,
 		&rss.Link,
 		&rss.Description,
+		&rss.Fetched,
+		&rss.LastModified,
 		&rss.CreatedAt,
 		&rss.UpdatedAt,
 	)
@@ -76,7 +79,7 @@ func (r *RssService) Fetch(ctx context.Context) ([]models.RssFeed, error) {
 	dbctx, cancel := context.WithTimeout(spanctx, dbtimeout)
 	defer cancel()
 
-	query := `SELECT id, title, link, description, created_at, updated_at FROM rss;`
+	query := `SELECT id, title, link, description, fetched, last_modified, created_at, updated_at FROM rss;`
 	rows, err := r.db.QueryContext(dbctx, query)
 	if err != nil {
 		return nil, err
@@ -91,6 +94,8 @@ func (r *RssService) Fetch(ctx context.Context) ([]models.RssFeed, error) {
 			&rss.Title,
 			&rss.Link,
 			&rss.Description,
+			&rss.Fetched,
+			&rss.LastModified,
 			&rss.CreatedAt,
 			&rss.UpdatedAt,
 		)
@@ -110,7 +115,7 @@ func (r *RssService) FindByID(ctx context.Context, id string) (models.RssFeed, e
 	dbctx, cancel := context.WithTimeout(spanctx, dbtimeout)
 	defer cancel()
 
-	query := `SELECT id, title, link, description, created_at, updated_at FROM rss WHERE id = $1;`
+	query := `SELECT id, title, link, description, fetched, last_modified, created_at, updated_at FROM rss WHERE id = $1;`
 
 	row := r.db.QueryRowContext(dbctx, query, id)
 	err := row.Scan(
@@ -118,6 +123,8 @@ func (r *RssService) FindByID(ctx context.Context, id string) (models.RssFeed, e
 		&rss.Title,
 		&rss.Link,
 		&rss.Description,
+		&rss.Fetched,
+		&rss.LastModified,
 		&rss.CreatedAt,
 		&rss.UpdatedAt,
 	)
@@ -136,7 +143,7 @@ func (r *RssService) FindByLink(ctx context.Context, link string) (models.RssFee
 	dbctx, cancel := context.WithTimeout(spanctx, dbtimeout)
 	defer cancel()
 
-	query := `SELECT id, title, link, description, created_at, updated_at FROM rss WHERE link = $1;`
+	query := `SELECT id, title, link, description, fetched, last_modified, created_at, updated_at FROM rss WHERE link = $1;`
 
 	row := r.db.QueryRowContext(dbctx, query, link)
 	err := row.Scan(
@@ -144,6 +151,8 @@ func (r *RssService) FindByLink(ctx context.Context, link string) (models.RssFee
 		&rss.Title,
 		&rss.Link,
 		&rss.Description,
+		&rss.Fetched,
+		&rss.LastModified,
 		&rss.CreatedAt,
 		&rss.UpdatedAt,
 	)
@@ -164,16 +173,18 @@ func (r *RssService) Create(ctx context.Context, id, link string, body models.RS
 	defer cancel()
 
 	query := `
-		INSERT INTO rss (id, title, link, description, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6)
-		RETURNING id, title, link, description, created_at, updated_at;
+		INSERT INTO rss (id, title, link, description, last_modified, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		RETURNING id, title, link, description, fetched, last_modified, created_at, updated_at;
 	`
-	row := r.db.QueryRowContext(dbctx, query, id, body.Channel.Title, link, body.Channel.Description, time.Now(), time.Now())
+	row := r.db.QueryRowContext(dbctx, query, id, body.Channel.Title, link, body.Channel.Description, body.Channel.LastModified, time.Now(), time.Now())
 	err := row.Scan(
 		&rss.ID,
 		&rss.Title,
 		&rss.Link,
 		&rss.Description,
+		&rss.Fetched,
+		&rss.LastModified,
 		&rss.CreatedAt,
 		&rss.UpdatedAt,
 	)

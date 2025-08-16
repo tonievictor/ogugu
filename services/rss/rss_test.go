@@ -25,7 +25,7 @@ func TestRssService(t *testing.T) {
 
 	t.Run("test create rss", func(t *testing.T) {
 		var meta models.RSSMeta
-		meta.Channel.LastBuildDate = "Thu, 11 Jul 2025 15:04:05 GMT"
+		meta.Channel.LastModified = "Thu, 11 Jul 2025 15:04:05 GMT"
 		meta.Channel.Title = "Example RSS Feed"
 		meta.Channel.Description = "This is a description of the RSS feed."
 		_, err := rs.Create(context.Background(), id, "link", meta)
@@ -49,7 +49,7 @@ func TestRssService(t *testing.T) {
 
 	t.Run("update rss", func(t *testing.T) {
 		newlink := "newnamewhothat"
-		updatedfeed, err := rs.UpdateLink(context.Background(), id, newlink)
+		updatedfeed, err := rs.UpdateField(context.Background(), id, "link", newlink)
 
 		require.NoError(t, err)
 

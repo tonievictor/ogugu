@@ -1,0 +1,5 @@
+ALTER TABLE IF EXISTS	posts
+ADD CONSTRAINT posts_rss_id_fkey
+FOREIGN KEY (rss_id) 
+REFERENCES rss(id);
+-- ON DELETE CASCADE;

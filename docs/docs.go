@@ -413,6 +413,50 @@ const docTemplate = `{
             }
         },
         "/subscriptions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "get current user's subscriptions",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "subscription"
+                ],
+                "summary": "get subscriptions",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Subscription"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -521,14 +565,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/subscriptions/{id}": {
+        "/subscriptions/posts": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "get current user's subscriptions",
+                "description": "get posts from feed that user is subscribed to",
                 "consumes": [
                     "application/json"
                 ],
@@ -538,21 +582,12 @@ const docTemplate = `{
                 "tags": [
                     "subscription"
                 ],
-                "summary": "get subscriptions",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "user id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
+                "summary": "get posts",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.Subscription"
+                            "$ref": "#/definitions/response.FeedPosts"
                         }
                     },
                     "400": {
@@ -739,6 +774,20 @@ const docTemplate = `{
                 },
                 "user": {
                     "$ref": "#/definitions/models.User"
+                }
+            }
+        },
+        "response.FeedPosts": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Post"
+                    }
+                },
+                "message": {
+                    "type": "string"
                 }
             }
         },

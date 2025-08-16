@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/oklog/ulid/v2"
@@ -204,5 +205,11 @@ func getRSSMeta(link string) (models.RSSMeta, error) {
 		return models.RSSMeta{}, err
 	}
 
+	lastModified := res.Header.Get("Last-Modified")
+	if lastModified == "" {
+		meta.Channel.LastModified = time.Now().Format(time.RFC1123)
+	} else {
+		meta.Channel.LastModified = lastModified
+	}
 	return meta, nil
 }

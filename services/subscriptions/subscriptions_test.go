@@ -30,7 +30,7 @@ func TestSubscriptionService(t *testing.T) {
 	ss := New(db)
 
 	var meta models.RSSMeta
-	meta.Channel.LastBuildDate = "Thu, 11 Jul 2025 15:04:05 GMT"
+	meta.Channel.LastModified = "Thu, 11 Jul 2025 15:04:05 GMT"
 	meta.Channel.Title = "Example RSS Feed"
 	meta.Channel.Description = "This is a description of the RSS feed."
 	_, err = rs.Create(context.Background(), rssid, "rsslink", meta)
@@ -80,5 +80,10 @@ func TestSubscriptionService(t *testing.T) {
 		if n != 1 {
 			t.Error("expected to delete one entry from subscriptions table")
 		}
+	})
+
+	t.Run("get subscriptions from user post", func(t *testing.T) {
+		_, err := ss.GetPostFromSubScriptions(context.Background(), userid)
+		require.NoError(t, err)
 	})
 }

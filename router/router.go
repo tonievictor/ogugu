@@ -26,12 +26,12 @@ func Routes(db *sql.DB, cache *redis.Client, logger *zap.Logger) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins: []string{"https://*", "http://*"},
+		AllowedOrigins:   []string{"https://*", "http://*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: false,
-		MaxAge:           300, 
+		MaxAge:           300,
 	}))
 
 	v1 := chi.NewRouter()
@@ -61,7 +61,8 @@ func Routes(db *sql.DB, cache *redis.Client, logger *zap.Logger) http.Handler {
 	sc := subcontroller.New(cache, logger, subservice.New(db))
 	v1.Post("/subscriptions", IsAuthenticated(cache, logger, sc.Subscribe))
 	v1.Delete("/subscriptions", IsAuthenticated(cache, logger, sc.Unsubscribe))
-	v1.Get("/subscriptions/{id}", IsAuthenticated(cache, logger, sc.GetUserSubs))
+	v1.Get("/subscriptions", IsAuthenticated(cache, logger, sc.GetUserSubs))
+	v1.Get("/subscriptions/posts", IsAuthenticated(cache, logger, sc.GetPostFromSub))
 
 	r.Mount("/v1", v1)
 	return r

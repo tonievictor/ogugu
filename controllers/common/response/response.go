@@ -74,3 +74,8 @@ type Subscription struct {
 	Message string
 	Data    models.Subscription
 }
+
+type FeedPosts struct {
+	Message string
+	Data    []models.Post
+}
