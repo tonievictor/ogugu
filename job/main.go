@@ -6,62 +6,78 @@ import (
 	"encoding/xml"
 	"io"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/oklog/ulid/v2"
 
 	"go.uber.org/zap"
 
+	"github.com/robfig/cron/v3"
 	"ogugu/models"
 	"ogugu/services/posts"
 	"ogugu/services/rss"
 )
 
-func Start(db *sql.DB, logger *zap.Logger) {
-	rssSrv := rss.New(db)
-
-	feeds, err := rssSrv.Fetch(context.Background())
-	if err != nil {
-		logger.Error("could not get rss from db", zap.Error(err))
+func Init(db *sql.DB, logger *zap.Logger) {
+	interval := os.Getenv("CRON_INTERVAL")
+	if interval == "" {
+		logger.Error("CRON_INTERVAL env variable not set")
 		return
 	}
 
-	for _, feed := range feeds {
-		res, err := http.Get(feed.Link)
+	job := cron.New()
+	job.AddFunc(interval, func() {
+		rssSrv := rss.New(db)
+
+		feeds, err := rssSrv.Fetch(context.Background())
 		if err != nil {
-			logger.Error("an error occured while fetching rss data", zap.Error(err))
-			continue
+			logger.Error("could not get rss from db", zap.Error(err))
+			return
 		}
 
-		if !feed.Fetched {
-			if err = populate(res, db, feed, logger); err != nil {
+		for _, feed := range feeds {
+			res, err := http.Get(feed.Link)
+			if err != nil {
+				logger.Error("an error occured while fetching rss data", zap.Error(err))
 				continue
 			}
-			rssSrv.UpdateField(context.Background(), feed.ID, "fetched", true)
-			continue
-		}
 
-		lm := res.Header.Get("Last-Modified")
-		if lm == "" {
-			continue
-		}
-		lastModified, err := time.Parse(time.RFC1123, lm)
-		if err != nil {
-			logger.Error("could not parse last modified time", zap.Error(err))
-			continue
-		}
-		if lastModified.After(feed.LastModified) {
-			if err = populate(res, db, feed, logger); err != nil {
+			if !feed.Fetched {
+				if err = populate(res, db, feed, logger); err != nil {
+					continue
+				}
+				rssSrv.UpdateField(context.Background(), feed.ID, "fetched", true)
 				continue
 			}
-			rssSrv.UpdateField(context.Background(), feed.ID, "last_modified", lastModified)
+
+			lm := res.Header.Get("Last-Modified")
+			if lm == "" {
+				continue
+			}
+			lastModified, err := time.Parse(time.RFC1123, lm)
+			if err != nil {
+				logger.Error("could not parse last modified time", zap.Error(err))
+				continue
+			}
+			if lastModified.After(feed.LastModified) {
+				if err = populate(res, db, feed, logger); err != nil {
+					continue
+				}
+				rssSrv.UpdateField(context.Background(), feed.ID, "last_modified", lastModified)
+			}
 		}
-	}
+	})
+
+	job.Start()
+	select {}
 }
 
 func populate(res *http.Response, db *sql.DB, feed models.RssFeed, logger *zap.Logger) error {
 	postSrv := posts.New(db)
+
 	body, err := io.ReadAll(res.Body)
+	defer res.Body.Close()
 	if err != nil {
 		logger.Error("could not read response body", zap.Error(err))
 		return err
@@ -70,7 +86,7 @@ func populate(res *http.Response, db *sql.DB, feed models.RssFeed, logger *zap.L
 	var data models.RSSItems
 	err = xml.Unmarshal(body, &data)
 	if err != nil {
-		logger.Error("could not unmarshal data "+feed.Link, zap.Error(err))
+		logger.Error("could not unmarshal data from "+feed.Link, zap.Error(err))
 		return err
 	}
 
@@ -82,5 +98,5 @@ func populate(res *http.Response, db *sql.DB, feed models.RssFeed, logger *zap.L
 		}
 	}
 
-	return res.Body.Close()
+	return nil
 }

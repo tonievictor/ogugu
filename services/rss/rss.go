@@ -2,6 +2,7 @@ package rss
 
 import (
 	"context"
+	"errors"
 	"database/sql"
 	"fmt"
 	"time"
@@ -42,6 +43,10 @@ func (r *RssService) DeleteByID(ctx context.Context, id string) (int64, error) {
 func (r *RssService) UpdateField(ctx context.Context, id, field, value any) (models.RssFeed, error) {
 	spanctx, span := tracer.Start(ctx, "update rss feed")
 	defer span.End()
+
+	if field != "link" || field != "last_modified" || field != "fetched" {
+		return models.RssFeed{}, errors.New("field update not permitted")
+	}
 
 	var rss models.RssFeed
 	dbctx, cancel := context.WithTimeout(spanctx, dbtimeout)
