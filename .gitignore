@@ -7,3 +7,5 @@ tmp
 **/.terraform.lock.hcl
 **/*.tfstate
 **/*.tfstate.*
+cli
+server

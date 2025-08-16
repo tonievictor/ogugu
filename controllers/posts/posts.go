@@ -25,13 +25,13 @@ func New(log *zap.Logger, ps *posts.PostService) *PostsController {
 	}
 }
 
-// @Summary      get all posts
-// @Description  get all posts
-// @Tags         posts
-// @Produce      json
-// @Success 200 {object} response.Posts "Posts found"
-// @Failure default {object} response.Response "Unable to get posts"
-// @Router /posts [get]
+//	@Summary		get all posts
+//	@Description	get all posts
+//	@Tags			posts
+//	@Produce		json
+//	@Success		200		{object}	response.Posts		"Posts found"
+//	@Failure		default	{object}	response.Response	"Unable to get posts"
+//	@Router			/posts [get]
 func (pc *PostsController) FetchPosts(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "fetch all posts")
 	defer span.End()
@@ -52,15 +52,15 @@ func (pc *PostsController) FetchPosts(w http.ResponseWriter, r *http.Request) {
 	response.Success(w, message, http.StatusOK, feed, pc.log)
 }
 
-// @Summary      get a post
-// @Description  get a post by ID
-// @Tags         posts
-// @Produce      json
-// @Param        id   path      string  true  "Post ID"
-// @Success 200 {object} response.Post "Post with ID found"
-// @Failure 404 {object} response.Response "Post with ID not found"
-// @Failure default {object} response.Response "Unable to get post with id"
-// @Router /posts/{id} [get]
+//	@Summary		get a post
+//	@Description	get a post by ID
+//	@Tags			posts
+//	@Produce		json
+//	@Param			id		path		string				true	"Post ID"
+//	@Success		200		{object}	response.Post		"Post with ID found"
+//	@Failure		404		{object}	response.Response	"Post with ID not found"
+//	@Failure		default	{object}	response.Response	"Unable to get post with id"
+//	@Router			/posts/{id} [get]
 func (pc *PostsController) GetPostByID(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "get a post by id")
 	defer span.End()

@@ -2,8 +2,8 @@ package rss
 
 import (
 	"context"
-	"errors"
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -44,7 +44,7 @@ func (r *RssService) UpdateField(ctx context.Context, id, field, value any) (mod
 	spanctx, span := tracer.Start(ctx, "update rss feed")
 	defer span.End()
 
-	if field != "link" || field != "last_modified" || field != "fetched" {
+	if field != "link" && field != "last_modified" && field != "fetched" {
 		return models.RssFeed{}, errors.New("field update not permitted")
 	}
 

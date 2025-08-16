@@ -38,17 +38,17 @@ func New(cache *redis.Client,
 	}
 }
 
-// @Summary			 get subscriptions
-// @Description  get current user's subscriptions
-// @Tags				 subscription
-// @Security     BearerAuth
-// @Accept       json
-// @Produce      json
-// @Success 200  {object} response.Subscription
-// @Failure 400  {object} response.Response
-// @Failure 500  {object} response.Response
-// @Failure default  {object} response.Response
-// @Router /subscriptions [get]
+//	@Summary		get subscriptions
+//	@Description	get current user's subscriptions
+//	@Tags			subscription
+//	@Security		BearerAuth
+//	@Accept			json
+//	@Produce		json
+//	@Success		200		{object}	response.Subscription
+//	@Failure		400		{object}	response.Response
+//	@Failure		500		{object}	response.Response
+//	@Failure		default	{object}	response.Response
+//	@Router			/subscriptions [get]
 func (sc *SubscriptionController) GetUserSubs(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "get user's subscriptions")
 	defer span.End()
@@ -70,18 +70,18 @@ func (sc *SubscriptionController) GetUserSubs(w http.ResponseWriter, r *http.Req
 	response.Success(w, msg, http.StatusOK, subs, sc.log)
 }
 
-// @Summary			 subscribe
-// @Description  subscribe to an rss feed
-// @Tags         subscription
-// @Security     BearerAuth
-// @Accept       json
-// @Produce      json
-// @Param body body models.SubscriptionBody true "body"
-// @Success 201  {object} response.Subscription
-// @Failure 400  {object} response.Response
-// @Failure 500  {object} response.Response
-// @Failure default  {object} response.Response
-// @Router /subscriptions [post]
+//	@Summary		subscribe
+//	@Description	subscribe to an rss feed
+//	@Tags			subscription
+//	@Security		BearerAuth
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		models.SubscriptionBody	true	"body"
+//	@Success		201		{object}	response.Subscription
+//	@Failure		400		{object}	response.Response
+//	@Failure		500		{object}	response.Response
+//	@Failure		default	{object}	response.Response
+//	@Router			/subscriptions [post]
 func (sc *SubscriptionController) Subscribe(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "subscribe to an rss feed")
 	defer span.End()
@@ -119,18 +119,18 @@ func (sc *SubscriptionController) Subscribe(w http.ResponseWriter, r *http.Reque
 	response.Success(w, "subscription successful", http.StatusCreated, sub, sc.log)
 }
 
-// @Summary			 unsubscribe
-// @Description  unsubscribe from an rss feed
-// @Tags         subscription
-// @Security     BearerAuth
-// @Accept       json
-// @Produce      json
-// @Param body body models.SubscriptionBody true "body"
-// @Success 204
-// @Failure 400  {object} response.Response
-// @Failure 500  {object} response.Response
-// @Failure default  {object} response.Response
-// @Router /subscriptions [delete]
+//	@Summary		unsubscribe
+//	@Description	unsubscribe from an rss feed
+//	@Tags			subscription
+//	@Security		BearerAuth
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body	models.SubscriptionBody	true	"body"
+//	@Success		204
+//	@Failure		400		{object}	response.Response
+//	@Failure		500		{object}	response.Response
+//	@Failure		default	{object}	response.Response
+//	@Router			/subscriptions [delete]
 func (sc *SubscriptionController) Unsubscribe(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "unsubscribe from an rss feed")
 	defer span.End()
@@ -168,17 +168,17 @@ func (sc *SubscriptionController) Unsubscribe(w http.ResponseWriter, r *http.Req
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// @Summary			 get posts
-// @Description  get posts from feed that user is subscribed to
-// @Tags				 subscription
-// @Security     BearerAuth
-// @Accept       json
-// @Produce      json
-// @Success 200  {object} response.FeedPosts
-// @Failure 400  {object} response.Response
-// @Failure 500  {object} response.Response
-// @Failure default  {object} response.Response
-// @Router /subscriptions/posts [get]
+//	@Summary		get posts
+//	@Description	get posts from feed that user is subscribed to
+//	@Tags			subscription
+//	@Security		BearerAuth
+//	@Accept			json
+//	@Produce		json
+//	@Success		200		{object}	response.FeedPosts
+//	@Failure		400		{object}	response.Response
+//	@Failure		500		{object}	response.Response
+//	@Failure		default	{object}	response.Response
+//	@Router			/subscriptions/posts [get]
 func (sc *SubscriptionController) GetPostFromSub(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "get post from sub")
 	defer span.End()

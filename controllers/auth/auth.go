@@ -40,17 +40,17 @@ func New(c *redis.Client, l *zap.Logger, u *users.UserService, a *auth.AuthServi
 	}
 }
 
-// @Summary			 sign out
-// @Description  sign out from current session
-// @Security     BearerAuth
-// @Tags				 account
-// @Accept       json
-// @Produce      json
-// @Sucess 204
-// @Failure 401	{object} response.Response
-// @Failure 500	{object} response.Response
-// @Failure default	{object} response.Response
-// @Router /signout [delete]
+//	@Summary		sign out
+//	@Description	sign out from current session
+//	@Security		BearerAuth
+//	@Tags			account
+//	@Accept			json
+//	@Produce		json
+//	@Sucess			204
+//	@Failure		401		{object}	response.Response
+//	@Failure		500		{object}	response.Response
+//	@Failure		default	{object}	response.Response
+//	@Router			/signout [delete]
 func (ac *AuthController) Signout(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "sign out")
 	defer span.End()
@@ -68,16 +68,16 @@ func (ac *AuthController) Signout(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// @Summary			 sign in
-// @Description  signin to an existing account
-// @Tags         account
-// @Accept       json
-// @Produce      json
-// @Param body body models.SigninBody true "body"
-// @Success 200  {object} response.UserWithAuth
-// @Failure 400  {object} response.Response
-// @Failure 500  {object} response.Response
-// @Router /signin [post]
+//	@Summary		sign in
+//	@Description	signin to an existing account
+//	@Tags			account
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		models.SigninBody	true	"body"
+//	@Success		200		{object}	response.UserWithAuth
+//	@Failure		400		{object}	response.Response
+//	@Failure		500		{object}	response.Response
+//	@Router			/signin [post]
 func (ac *AuthController) Signin(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "Sign in")
 	defer span.End()
@@ -153,16 +153,16 @@ func (ac *AuthController) Signin(w http.ResponseWriter, r *http.Request) {
 	response.Success(w, "Login Successful", http.StatusOK, data, ac.log)
 }
 
-// @Summary			 sign up
-// @Description  create a new account
-// @Tags         account
-// @Accept       json
-// @Produce      json
-// @Param body body models.CreateUserBody true "body"
-// @Success 201  {object} response.User
-// @Failure 400  {object} response.Response
-// @Failure 500  {object} response.Response
-// @Router /signup [post]
+//	@Summary		sign up
+//	@Description	create a new account
+//	@Tags			account
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		models.CreateUserBody	true	"body"
+//	@Success		201		{object}	response.User
+//	@Failure		400		{object}	response.Response
+//	@Failure		500		{object}	response.Response
+//	@Router			/signup [post]
 func (ac *AuthController) Signup(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "Sign Up")
 	defer span.End()

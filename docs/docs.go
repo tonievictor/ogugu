@@ -682,7 +682,13 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "fetched": {
+                    "type": "boolean"
+                },
                 "id": {
+                    "type": "string"
+                },
+                "last_modified": {
                     "type": "string"
                 },
                 "link": {
