@@ -76,7 +76,7 @@ kubectl port-forward svc/tempo 4318 -n monitoring
 After completing the setup and deployment, follow these steps to run the application and interact with its API:
 1. Generate Swagger Docs
 ```bash
-swag init
+swag init -g cmd/server/main.go
 ```
 2. Run the application
 ```bash
