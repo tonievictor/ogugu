@@ -13,17 +13,17 @@ const dbtimeout = time.Second * 3
 
 var tracer = otel.Tracer("rss service")
 
-type SubscriptionService struct {
+type Service struct {
 	db *sql.DB
 }
 
-func New(db *sql.DB) *SubscriptionService {
-	return &SubscriptionService{
+func New(db *sql.DB) *Service {
+	return &Service{
 		db: db,
 	}
 }
 
-func (ss *SubscriptionService) DeleteSub(ctx context.Context, user_id, rss_id string) (int64, error) {
+func (ss *Service) DeleteSub(ctx context.Context, user_id, rss_id string) (int64, error) {
 	spanctx, span := tracer.Start(ctx, "delete a subscription")
 	defer span.End()
 
@@ -39,7 +39,7 @@ func (ss *SubscriptionService) DeleteSub(ctx context.Context, user_id, rss_id st
 	return r.RowsAffected()
 }
 
-func (ss *SubscriptionService) CreateSub(ctx context.Context, id, user_id, rss_id string) (models.Subscription, error) {
+func (ss *Service) CreateSub(ctx context.Context, id, user_id, rss_id string) (models.Subscription, error) {
 	spanctx, span := tracer.Start(ctx, "create a new subscription")
 	defer span.End()
 
@@ -62,7 +62,7 @@ func (ss *SubscriptionService) CreateSub(ctx context.Context, id, user_id, rss_i
 	return sub, nil
 }
 
-func (ss *SubscriptionService) GetSubByID(ctx context.Context, id string) (models.Subscription, error) {
+func (ss *Service) GetSubByID(ctx context.Context, id string) (models.Subscription, error) {
 	spanctx, span := tracer.Start(ctx, "get subscription by id")
 	defer span.End()
 
@@ -97,7 +97,7 @@ func (ss *SubscriptionService) GetSubByID(ctx context.Context, id string) (model
 	return sub, nil
 }
 
-func (ss *SubscriptionService) GetSubs(ctx context.Context) ([]models.Subscription, error) {
+func (ss *Service) GetSubs(ctx context.Context) ([]models.Subscription, error) {
 	spanctx, span := tracer.Start(ctx, "get all subscriptions")
 	defer span.End()
 
@@ -138,7 +138,7 @@ func (ss *SubscriptionService) GetSubs(ctx context.Context) ([]models.Subscripti
 	return subs, nil
 }
 
-func (ss *SubscriptionService) GetSubsByUserID(ctx context.Context, user_id string) ([]models.Subscription, error) {
+func (ss *Service) GetSubsByUserID(ctx context.Context, user_id string) ([]models.Subscription, error) {
 	spanctx, span := tracer.Start(ctx, "get all subscriptions by user id")
 	defer span.End()
 
@@ -181,7 +181,7 @@ func (ss *SubscriptionService) GetSubsByUserID(ctx context.Context, user_id stri
 	return subs, nil
 }
 
-func (ss *SubscriptionService) GetPostFromSubScriptions(ctx context.Context, user_id string) ([]models.Post, error) {
+func (ss *Service) GetPostFromSubScriptions(ctx context.Context, user_id string) ([]models.Post, error) {
 	spanctx, span := tracer.Start(ctx, "get post that user from rss subscriptions")
 	defer span.End()
 

@@ -13,15 +13,15 @@ var (
 	tracer    = otel.Tracer("auth service")
 )
 
-type AuthService struct {
+type Service struct {
 	db *sql.DB
 }
 
-func New(db *sql.DB) *AuthService {
-	return &AuthService{db}
+func New(db *sql.DB) *Service {
+	return &Service{db}
 }
 
-func (a *AuthService) CreateAuth(ctx context.Context, userId, password string) error {
+func (a *Service) CreateAuth(ctx context.Context, id, password string) error {
 	spanctx, span := tracer.Start(ctx, "Creating a new auth entry")
 	defer span.End()
 
@@ -34,11 +34,11 @@ func (a *AuthService) CreateAuth(ctx context.Context, userId, password string) e
 		RETURNING id;
 	`
 
-	_, err := a.db.ExecContext(dbctx, query, userId, password, time.Now(), time.Now())
+	_, err := a.db.ExecContext(dbctx, query, id, password, time.Now(), time.Now())
 	return err
 }
 
-func (a *AuthService) GetPasswordWithUserID(ctx context.Context, userId string) (string, error) {
+func (a *Service) GetPasswordWithUserID(ctx context.Context, id string) (string, error) {
 	spanctx, span := tracer.Start(ctx, "getting an auth entry")
 	defer span.End()
 
@@ -47,7 +47,7 @@ func (a *AuthService) GetPasswordWithUserID(ctx context.Context, userId string) 
 
 	var password string
 	query := `SELECT password FROM auth WHERE user_id = $1;`
-	row := a.db.QueryRowContext(dbctx, query, userId)
+	row := a.db.QueryRowContext(dbctx, query, id)
 	err := row.Scan(&password)
 	if err != nil {
 		return "", err

@@ -15,17 +15,17 @@ const dbtimeout = time.Second * 3
 
 var tracer = otel.Tracer("user service")
 
-type UserService struct {
+type Service struct {
 	db *sql.DB
 }
 
-func New(db *sql.DB) *UserService {
-	return &UserService{
+func New(db *sql.DB) *Service {
+	return &Service{
 		db: db,
 	}
 }
 
-func (u *UserService) GetUserByID(ctx context.Context, id string) (models.User, error) {
+func (u *Service) GetUserByID(ctx context.Context, id string) (models.User, error) {
 	spanctx, span := tracer.Start(ctx, "getuser by id")
 	defer span.End()
 
@@ -52,7 +52,7 @@ func (u *UserService) GetUserByID(ctx context.Context, id string) (models.User, 
 	return user, nil
 }
 
-func (u *UserService) DeleteUserByID(ctx context.Context, id string) (int64, error) {
+func (u *Service) DeleteUserByID(ctx context.Context, id string) (int64, error) {
 	spanctx, span := tracer.Start(ctx, "delete user")
 	defer span.End()
 
@@ -67,7 +67,7 @@ func (u *UserService) DeleteUserByID(ctx context.Context, id string) (int64, err
 	return r.RowsAffected()
 }
 
-func (u *UserService) CreateUser(ctx context.Context, id string, body models.CreateUserBody) (models.User, error) {
+func (u *Service) CreateUser(ctx context.Context, id string, body models.CreateUserBody) (models.User, error) {
 	spanctx, span := tracer.Start(ctx, "create user")
 	defer span.End()
 
@@ -95,7 +95,7 @@ func (u *UserService) CreateUser(ctx context.Context, id string, body models.Cre
 	return user, nil
 }
 
-func (u *UserService) UpdateUser(ctx context.Context, id string, field, value string) (models.User, error) {
+func (u *Service) UpdateUser(ctx context.Context, id string, field, value string) (models.User, error) {
 	spanctx, span := tracer.Start(ctx, "update user")
 	defer span.End()
 
@@ -131,7 +131,7 @@ func (u *UserService) UpdateUser(ctx context.Context, id string, field, value st
 	return user, nil
 }
 
-func (u *UserService) GetUser(ctx context.Context, field, value string) (models.User, error) {
+func (u *Service) GetUser(ctx context.Context, field, value string) (models.User, error) {
 	spanctx, span := tracer.Start(ctx, "fetch user")
 	defer span.End()
 
@@ -162,7 +162,7 @@ func (u *UserService) GetUser(ctx context.Context, field, value string) (models.
 	return user, nil
 }
 
-func (u *UserService) GetUserAuth(ctx context.Context, email string) (string, string, error) {
+func (u *Service) GetUserAuth(ctx context.Context, email string) (string, string, error) {
 	spanctx, span := tracer.Start(ctx, "get userid and password")
 	defer span.End()
 
@@ -181,7 +181,7 @@ func (u *UserService) GetUserAuth(ctx context.Context, email string) (string, st
 	return id, password, nil
 }
 
-func (u *UserService) GetAllUsers(ctx context.Context) ([]models.User, error) {
+func (u *Service) GetAllUsers(ctx context.Context) ([]models.User, error) {
 	spanctx, span := tracer.Start(ctx, "fetch all users from db")
 	defer span.End()
 

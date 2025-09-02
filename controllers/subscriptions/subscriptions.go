@@ -21,41 +21,41 @@ var (
 	Validate = validator.New()
 )
 
-type SubscriptionController struct {
-	cache      *redis.Client
-	log        *zap.Logger
-	subservice *subscriptions.SubscriptionService
+type Controller struct {
+	cache   *redis.Client
+	log     *zap.Logger
+	service *subscriptions.Service
 }
 
 func New(cache *redis.Client,
 	log *zap.Logger,
-	ss *subscriptions.SubscriptionService,
-) *SubscriptionController {
-	return &SubscriptionController{
-		cache:      cache,
-		log:        log,
-		subservice: ss,
+	ss *subscriptions.Service,
+) *Controller {
+	return &Controller{
+		cache:   cache,
+		log:     log,
+		service: ss,
 	}
 }
 
-//	@Summary		get subscriptions
-//	@Description	get current user's subscriptions
-//	@Tags			subscription
-//	@Security		BearerAuth
-//	@Accept			json
-//	@Produce		json
-//	@Success		200		{object}	response.Subscription
-//	@Failure		400		{object}	response.Response
-//	@Failure		500		{object}	response.Response
-//	@Failure		default	{object}	response.Response
-//	@Router			/subscriptions [get]
-func (sc *SubscriptionController) GetUserSubs(w http.ResponseWriter, r *http.Request) {
+// @Summary		get subscriptions
+// @Description	get current user's subscriptions
+// @Tags			subscription
+// @Security		BearerAuth
+// @Accept			json
+// @Produce		json
+// @Success		200		{object}	response.Subscription
+// @Failure		400		{object}	response.Response
+// @Failure		500		{object}	response.Response
+// @Failure		default	{object}	response.Response
+// @Router			/subscriptions [get]
+func (sc *Controller) GetUserSubs(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "get user's subscriptions")
 	defer span.End()
 
 	session := r.Context().Value(models.AuthSessionKey).(models.Session)
 
-	subs, err := sc.subservice.GetSubsByUserID(spanctx, session.UserID)
+	subs, err := sc.service.GetSubsByUserID(spanctx, session.UserID)
 	if err != nil {
 		sc.log.Error("could not get user's subscriptions", zap.Error(err))
 		status, message := pgerrors.Details(err)
@@ -70,19 +70,19 @@ func (sc *SubscriptionController) GetUserSubs(w http.ResponseWriter, r *http.Req
 	response.Success(w, msg, http.StatusOK, subs, sc.log)
 }
 
-//	@Summary		subscribe
-//	@Description	subscribe to an rss feed
-//	@Tags			subscription
-//	@Security		BearerAuth
-//	@Accept			json
-//	@Produce		json
-//	@Param			body	body		models.SubscriptionBody	true	"body"
-//	@Success		201		{object}	response.Subscription
-//	@Failure		400		{object}	response.Response
-//	@Failure		500		{object}	response.Response
-//	@Failure		default	{object}	response.Response
-//	@Router			/subscriptions [post]
-func (sc *SubscriptionController) Subscribe(w http.ResponseWriter, r *http.Request) {
+// @Summary		subscribe
+// @Description	subscribe to an rss feed
+// @Tags			subscription
+// @Security		BearerAuth
+// @Accept			json
+// @Produce		json
+// @Param			body	body		models.SubscriptionBody	true	"body"
+// @Success		201		{object}	response.Subscription
+// @Failure		400		{object}	response.Response
+// @Failure		500		{object}	response.Response
+// @Failure		default	{object}	response.Response
+// @Router			/subscriptions [post]
+func (sc *Controller) Subscribe(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "subscribe to an rss feed")
 	defer span.End()
 
@@ -108,7 +108,7 @@ func (sc *SubscriptionController) Subscribe(w http.ResponseWriter, r *http.Reque
 
 	u := r.Context().Value(models.AuthSessionKey).(models.Session)
 	id := ulid.Make().String()
-	sub, err := sc.subservice.CreateSub(spanctx, id, u.UserID, body.RssID)
+	sub, err := sc.service.CreateSub(spanctx, id, u.UserID, body.RssID)
 	if err != nil {
 		sc.log.Error("could not add subscription", zap.Error(err))
 		status, message := pgerrors.Details(err)
@@ -119,19 +119,19 @@ func (sc *SubscriptionController) Subscribe(w http.ResponseWriter, r *http.Reque
 	response.Success(w, "subscription successful", http.StatusCreated, sub, sc.log)
 }
 
-//	@Summary		unsubscribe
-//	@Description	unsubscribe from an rss feed
-//	@Tags			subscription
-//	@Security		BearerAuth
-//	@Accept			json
-//	@Produce		json
-//	@Param			body	body	models.SubscriptionBody	true	"body"
-//	@Success		204
-//	@Failure		400		{object}	response.Response
-//	@Failure		500		{object}	response.Response
-//	@Failure		default	{object}	response.Response
-//	@Router			/subscriptions [delete]
-func (sc *SubscriptionController) Unsubscribe(w http.ResponseWriter, r *http.Request) {
+// @Summary		unsubscribe
+// @Description	unsubscribe from an rss feed
+// @Tags			subscription
+// @Security		BearerAuth
+// @Accept			json
+// @Produce		json
+// @Param			body	body	models.SubscriptionBody	true	"body"
+// @Success		204
+// @Failure		400		{object}	response.Response
+// @Failure		500		{object}	response.Response
+// @Failure		default	{object}	response.Response
+// @Router			/subscriptions [delete]
+func (sc *Controller) Unsubscribe(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "unsubscribe from an rss feed")
 	defer span.End()
 
@@ -156,7 +156,7 @@ func (sc *SubscriptionController) Unsubscribe(w http.ResponseWriter, r *http.Req
 	}
 
 	session := r.Context().Value(models.AuthSessionKey).(models.Session)
-	_, err = sc.subservice.DeleteSub(spanctx, session.UserID, body.RssID)
+	_, err = sc.service.DeleteSub(spanctx, session.UserID, body.RssID)
 	if err != nil {
 		sc.log.Error("could not delete subscription", zap.Error(err))
 		status, message := pgerrors.Details(err)
@@ -168,23 +168,23 @@ func (sc *SubscriptionController) Unsubscribe(w http.ResponseWriter, r *http.Req
 	w.WriteHeader(http.StatusNoContent)
 }
 
-//	@Summary		get posts
-//	@Description	get posts from feed that user is subscribed to
-//	@Tags			subscription
-//	@Security		BearerAuth
-//	@Accept			json
-//	@Produce		json
-//	@Success		200		{object}	response.FeedPosts
-//	@Failure		400		{object}	response.Response
-//	@Failure		500		{object}	response.Response
-//	@Failure		default	{object}	response.Response
-//	@Router			/subscriptions/posts [get]
-func (sc *SubscriptionController) GetPostFromSub(w http.ResponseWriter, r *http.Request) {
+// @Summary		get posts
+// @Description	get posts from feed that user is subscribed to
+// @Tags			subscription
+// @Security		BearerAuth
+// @Accept			json
+// @Produce		json
+// @Success		200		{object}	response.FeedPosts
+// @Failure		400		{object}	response.Response
+// @Failure		500		{object}	response.Response
+// @Failure		default	{object}	response.Response
+// @Router			/subscriptions/posts [get]
+func (sc *Controller) GetPostFromSub(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "get post from sub")
 	defer span.End()
 
 	session := r.Context().Value(models.AuthSessionKey).(models.Session)
-	posts, err := sc.subservice.GetPostFromSubScriptions(spanctx, session.UserID)
+	posts, err := sc.service.GetPostFromSubScriptions(spanctx, session.UserID)
 	if err != nil {
 		sc.log.Error("cannot get posts", zap.Error(err))
 		status, msg := pgerrors.Details(err)

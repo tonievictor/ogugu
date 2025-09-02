@@ -16,7 +16,7 @@ func TestAuthService(t *testing.T) {
 
 	mfile := "file://" + filepath.Dir(filepath.Dir(dir)) + "/migrations"
 	db, teardown := services.SetupTestDB(t, mfile)
-	defer teardown()
+	t.Cleanup(teardown)
 
 	as := New(db)
 

@@ -24,15 +24,15 @@ var (
 	Validate = validator.New()
 )
 
-type AuthController struct {
+type Controller struct {
 	cache       *redis.Client
 	log         *zap.Logger
-	userService *users.UserService
-	authService *auth.AuthService
+	userService *users.Service
+	authService *auth.Service
 }
 
-func New(c *redis.Client, l *zap.Logger, u *users.UserService, a *auth.AuthService) *AuthController {
-	return &AuthController{
+func New(c *redis.Client, l *zap.Logger, u *users.Service, a *auth.Service) *Controller {
+	return &Controller{
 		cache:       c,
 		log:         l,
 		userService: u,
@@ -51,7 +51,7 @@ func New(c *redis.Client, l *zap.Logger, u *users.UserService, a *auth.AuthServi
 //	@Failure		500		{object}	response.Response
 //	@Failure		default	{object}	response.Response
 //	@Router			/signout [delete]
-func (ac *AuthController) Signout(w http.ResponseWriter, r *http.Request) {
+func (ac *Controller) Signout(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "sign out")
 	defer span.End()
 
@@ -78,7 +78,7 @@ func (ac *AuthController) Signout(w http.ResponseWriter, r *http.Request) {
 //	@Failure		400		{object}	response.Response
 //	@Failure		500		{object}	response.Response
 //	@Router			/signin [post]
-func (ac *AuthController) Signin(w http.ResponseWriter, r *http.Request) {
+func (ac *Controller) Signin(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "Sign in")
 	defer span.End()
 
@@ -163,7 +163,7 @@ func (ac *AuthController) Signin(w http.ResponseWriter, r *http.Request) {
 //	@Failure		400		{object}	response.Response
 //	@Failure		500		{object}	response.Response
 //	@Router			/signup [post]
-func (ac *AuthController) Signup(w http.ResponseWriter, r *http.Request) {
+func (ac *Controller) Signup(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "Sign Up")
 	defer span.End()
 

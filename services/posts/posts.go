@@ -13,15 +13,15 @@ var tracer = otel.Tracer("posts service")
 
 const dbtimeout = time.Second * 3
 
-type PostService struct {
+type Service struct {
 	db *sql.DB
 }
 
-func New(db *sql.DB) *PostService {
-	return &PostService{db: db}
+func New(db *sql.DB) *Service {
+	return &Service{db: db}
 }
 
-func (ps *PostService) CreatePost(
+func (ps *Service) CreatePost(
 	ctx context.Context, id string, rss_id string, p models.CreatePost,
 ) (models.Post, error) {
 	spanctx, span := tracer.Start(ctx, "creating a new post")
@@ -56,7 +56,7 @@ func (ps *PostService) CreatePost(
 	return post, nil
 }
 
-func (ps *PostService) GetByID(ctx context.Context, id string) (models.Post, error) {
+func (ps *Service) GetByID(ctx context.Context, id string) (models.Post, error) {
 	spanctx, span := tracer.Start(ctx, "get a post by id")
 	defer span.End()
 
@@ -85,7 +85,7 @@ func (ps *PostService) GetByID(ctx context.Context, id string) (models.Post, err
 	return post, nil
 }
 
-func (ps *PostService) Fetch(ctx context.Context) ([]models.Post, error) {
+func (ps *Service) Fetch(ctx context.Context) ([]models.Post, error) {
 	spanctx, span := tracer.Start(ctx, "fetch all posts")
 	defer span.End()
 
@@ -122,7 +122,7 @@ func (ps *PostService) Fetch(ctx context.Context) ([]models.Post, error) {
 	return posts, nil
 }
 
-func (ps *PostService) DeletePost(ctx context.Context, id string) (int64, error) {
+func (ps *Service) DeletePost(ctx context.Context, id string) (int64, error) {
 	spanctx, span := tracer.Start(ctx, "delete post by id")
 	defer span.End()
 

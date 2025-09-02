@@ -23,13 +23,13 @@ var (
 	Validate = validator.New()
 )
 
-type RssController struct {
+type Controller struct {
 	log        *zap.Logger
-	rssService *rss.RssService
+	rssService *rss.Service
 }
 
-func New(l *zap.Logger, r *rss.RssService) *RssController {
-	return &RssController{
+func New(l *zap.Logger, r *rss.Service) *Controller {
+	return &Controller{
 		log:        l,
 		rssService: r,
 	}
@@ -45,7 +45,7 @@ func New(l *zap.Logger, r *rss.RssService) *RssController {
 //	@Failure		500		{object}	response.Response	"An error occured on the server"
 //	@Failure		default	{object}	response.Response	"An error occured"
 //	@Router			/feed [get]
-func (rc *RssController) Fetch(w http.ResponseWriter, r *http.Request) {
+func (rc *Controller) Fetch(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "fetch all rss")
 	defer span.End()
 
@@ -76,7 +76,7 @@ func (rc *RssController) Fetch(w http.ResponseWriter, r *http.Request) {
 //	@Failure		500		{object}	response.Response	"An error occured on the server"
 //	@Failure		default	{object}	response.Response	"An error occured"
 //	@Router			/feed/{id} [delete]
-func (rc *RssController) DeleteRssByID(w http.ResponseWriter, r *http.Request) {
+func (rc *Controller) DeleteRssByID(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "delete rss by id")
 	defer span.End()
 
@@ -113,7 +113,7 @@ func (rc *RssController) DeleteRssByID(w http.ResponseWriter, r *http.Request) {
 //	@Failure		500		{object}	response.Response	"An error occured on the server"
 //	@Failure		default	{object}	response.Response	"An error occured"
 //	@Router			/feed/{id} [get]
-func (rc *RssController) FindRssByID(w http.ResponseWriter, r *http.Request) {
+func (rc *Controller) FindRssByID(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "fetch rss by id")
 	defer span.End()
 
@@ -140,7 +140,7 @@ func (rc *RssController) FindRssByID(w http.ResponseWriter, r *http.Request) {
 //	@Failure		500		{object}	response.Response		"An error occured on the server"
 //	@Failure		default	{object}	response.Response		"An error occured"
 //	@Router			/feed [post]
-func (rc *RssController) CreateRss(w http.ResponseWriter, r *http.Request) {
+func (rc *Controller) CreateRss(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "create rss feed")
 	defer span.End()
 

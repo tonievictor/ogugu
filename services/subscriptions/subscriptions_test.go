@@ -20,7 +20,7 @@ func TestSubscriptionService(t *testing.T) {
 
 	mfile := "file://" + filepath.Dir(filepath.Dir(dir)) + "/migrations"
 	db, teardown := services.SetupTestDB(t, mfile)
-	defer teardown()
+	t.Cleanup(teardown)
 
 	rssid := "rssid"
 	userid := "userid"

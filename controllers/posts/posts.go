@@ -13,13 +13,13 @@ import (
 
 var tracer = otel.Tracer("posts controller")
 
-type PostsController struct {
+type Controller struct {
 	log         *zap.Logger
-	postService *posts.PostService
+	postService *posts.Service
 }
 
-func New(log *zap.Logger, ps *posts.PostService) *PostsController {
-	return &PostsController{
+func New(log *zap.Logger, ps *posts.Service) *Controller {
+	return &Controller{
 		log:         log,
 		postService: ps,
 	}
@@ -32,7 +32,7 @@ func New(log *zap.Logger, ps *posts.PostService) *PostsController {
 //	@Success		200		{object}	response.Posts		"Posts found"
 //	@Failure		default	{object}	response.Response	"Unable to get posts"
 //	@Router			/posts [get]
-func (pc *PostsController) FetchPosts(w http.ResponseWriter, r *http.Request) {
+func (pc *Controller) FetchPosts(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "fetch all posts")
 	defer span.End()
 
@@ -61,7 +61,7 @@ func (pc *PostsController) FetchPosts(w http.ResponseWriter, r *http.Request) {
 //	@Failure		404		{object}	response.Response	"Post with ID not found"
 //	@Failure		default	{object}	response.Response	"Unable to get post with id"
 //	@Router			/posts/{id} [get]
-func (pc *PostsController) GetPostByID(w http.ResponseWriter, r *http.Request) {
+func (pc *Controller) GetPostByID(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "get a post by id")
 	defer span.End()
 
