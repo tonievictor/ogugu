@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"ogugu/models"
-	"ogugu/services"
+	"ogugu/repository"
 )
 
 func TestRssService(t *testing.T) {
@@ -17,7 +17,7 @@ func TestRssService(t *testing.T) {
 	require.NoError(t, err)
 
 	mfile := "file://" + filepath.Dir(filepath.Dir(dir)) + "/migrations"
-	db, teardown := services.SetupTestDB(t, mfile)
+	db, teardown := repository.SetupTestDB(t, mfile)
 	t.Cleanup(teardown)
 
 	rs := New(db)

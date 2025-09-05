@@ -15,7 +15,7 @@ import (
 	"ogugu/controllers/common/pgerrors"
 	"ogugu/controllers/common/response"
 	"ogugu/models"
-	"ogugu/services/rss"
+	"ogugu/repository/rss"
 )
 
 var (
@@ -24,36 +24,36 @@ var (
 )
 
 type Controller struct {
-	log        *zap.Logger
-	rssService *rss.Service
+	log     *zap.Logger
+	rssRepo *rss.Repository
 }
 
-func New(l *zap.Logger, r *rss.Service) *Controller {
+func New(l *zap.Logger, r *rss.Repository) *Controller {
 	return &Controller{
-		log:        l,
-		rssService: r,
+		log:     l,
+		rssRepo: r,
 	}
 }
 
-//	@Summary		Find all RSS feeds
-//	@Description	Retrieve all RSS Feeds in the database.
-//	@Tags			rss
-//	@Produce		json
-//	@Success		200		{object}	response.RssFeeds	"RSS Feeds found"
-//	@Failure		400		{object}	response.Response	"Invalid request"
-//	@Failure		404		{object}	response.Response	"RSS Feed not found"
-//	@Failure		500		{object}	response.Response	"An error occured on the server"
-//	@Failure		default	{object}	response.Response	"An error occured"
-//	@Router			/feed [get]
-func (rc *Controller) Fetch(w http.ResponseWriter, r *http.Request) {
+// @Summary		Find all RSS feeds
+// @Description	Retrieve all RSS Feeds in the database.
+// @Tags			rss
+// @Produce		json
+// @Success		200		{object}	response.RssFeeds	"RSS Feeds found"
+// @Failure		400		{object}	response.Response	"Invalid request"
+// @Failure		404		{object}	response.Response	"RSS Feed not found"
+// @Failure		500		{object}	response.Response	"An error occured on the server"
+// @Failure		default	{object}	response.Response	"An error occured"
+// @Router			/feed [get]
+func (c *Controller) Fetch(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "fetch all rss")
 	defer span.End()
 
-	feed, err := rc.rssService.Fetch(spanctx)
+	feed, err := c.rssRepo.Fetch(spanctx)
 	if err != nil {
-		rc.log.Error("An error occured while fetching all rss entries", zap.Error(err))
+		c.log.Error("An error occured while fetching all rss entries", zap.Error(err))
 		status, message := pgerrors.Details(err)
-		response.Error(w, message, status, rc.log)
+		response.Error(w, message, status, c.log)
 		return
 	}
 
@@ -62,39 +62,39 @@ func (rc *Controller) Fetch(w http.ResponseWriter, r *http.Request) {
 		message = "No resources found"
 	}
 
-	response.Success(w, message, http.StatusOK, feed, rc.log)
+	response.Success(w, message, http.StatusOK, feed, c.log)
 }
 
-//	@Summary		Delete an RSS feed by its ID
-//	@Description	Delete an existing RSS feed using its unique ID.
-//	@Tags			rss
-//	@Produce		json
-//	@Param			id		path		string				true	"ID of the RSS feed to retrieve"
-//	@Success		204		{object}	response.Response	"RSS Feed deleted"
-//	@Failure		400		{object}	response.Response	"Invalid request"
-//	@Failure		404		{object}	response.Response	"RSS Feed not found"
-//	@Failure		500		{object}	response.Response	"An error occured on the server"
-//	@Failure		default	{object}	response.Response	"An error occured"
-//	@Router			/feed/{id} [delete]
-func (rc *Controller) DeleteRssByID(w http.ResponseWriter, r *http.Request) {
+// @Summary		Delete an RSS feed by its ID
+// @Description	Delete an existing RSS feed using its unique ID.
+// @Tags			rss
+// @Produce		json
+// @Param			id		path		string				true	"ID of the RSS feed to retrieve"
+// @Success		204		{object}	response.Response	"RSS Feed deleted"
+// @Failure		400		{object}	response.Response	"Invalid request"
+// @Failure		404		{object}	response.Response	"RSS Feed not found"
+// @Failure		500		{object}	response.Response	"An error occured on the server"
+// @Failure		default	{object}	response.Response	"An error occured"
+// @Router			/feed/{id} [delete]
+func (c *Controller) DeleteRssByID(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "delete rss by id")
 	defer span.End()
 
 	id := r.PathValue("id")
 	// DeleteByID
-	_, err := rc.rssService.FindByID(spanctx, id)
+	_, err := c.rssRepo.FindByID(spanctx, id)
 	if err != nil {
-		rc.log.Error("An error occured while deleting an rss entry", zap.String("id", id), zap.Error(err))
+		c.log.Error("An error occured while deleting an rss entry", zap.String("id", id), zap.Error(err))
 		status, message := pgerrors.Details(err)
-		response.Error(w, message, status, rc.log)
+		response.Error(w, message, status, c.log)
 		return
 	}
 
-	_, err = rc.rssService.DeleteByID(spanctx, id)
+	_, err = c.rssRepo.DeleteByID(spanctx, id)
 	if err != nil {
-		rc.log.Error("An error occured while deleting an rss entry", zap.String("id", id), zap.Error(err))
+		c.log.Error("An error occured while deleting an rss entry", zap.String("id", id), zap.Error(err))
 		status, message := pgerrors.Details(err)
-		response.Error(w, message, status, rc.log)
+		response.Error(w, message, status, c.log)
 		return
 	}
 
@@ -102,72 +102,72 @@ func (rc *Controller) DeleteRssByID(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-//	@Summary		Find an RSS feed by its ID
-//	@Description	Retrieve an existing RSS feed using its unique ID.
-//	@Tags			rss
-//	@Produce		json
-//	@Param			id		path		string				true	"ID of the RSS feed to retrieve"
-//	@Success		200		{object}	response.RssFeed	"RSS Feed found"
-//	@Failure		400		{object}	response.Response	"Invalid or malformed request body"
-//	@Failure		404		{object}	response.Response	"RSS Feed not found"
-//	@Failure		500		{object}	response.Response	"An error occured on the server"
-//	@Failure		default	{object}	response.Response	"An error occured"
-//	@Router			/feed/{id} [get]
-func (rc *Controller) FindRssByID(w http.ResponseWriter, r *http.Request) {
+// @Summary		Find an RSS feed by its ID
+// @Description	Retrieve an existing RSS feed using its unique ID.
+// @Tags			rss
+// @Produce		json
+// @Param			id		path		string				true	"ID of the RSS feed to retrieve"
+// @Success		200		{object}	response.RssFeed	"RSS Feed found"
+// @Failure		400		{object}	response.Response	"Invalid or malformed request body"
+// @Failure		404		{object}	response.Response	"RSS Feed not found"
+// @Failure		500		{object}	response.Response	"An error occured on the server"
+// @Failure		default	{object}	response.Response	"An error occured"
+// @Router			/feed/{id} [get]
+func (c *Controller) FindRssByID(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "fetch rss by id")
 	defer span.End()
 
 	id := r.PathValue("id")
-	feed, err := rc.rssService.FindByID(spanctx, id)
+	feed, err := c.rssRepo.FindByID(spanctx, id)
 	if err != nil {
-		rc.log.Error("resource not found", zap.String("id", id), zap.Error(err))
+		c.log.Error("resource not found", zap.String("id", id), zap.Error(err))
 		status, message := pgerrors.Details(err)
-		response.Error(w, message, status, rc.log)
+		response.Error(w, message, status, c.log)
 		return
 	}
 
-	response.Success(w, "Resource found", http.StatusOK, feed, rc.log)
+	response.Success(w, "Resource found", http.StatusOK, feed, c.log)
 }
 
-//	@Summary		Create a new RSS feed
-//	@Description	Create a new RSS feed by providing the feed's name and link.
-//	@Tags			rss
-//	@Accept			json
-//	@Produce		json
-//	@Param			body	body		models.CreateRssBody	true	"Create a new RSS feed"
-//	@Success		201		{object}	response.RssFeed		"RSS Feed created"
-//	@Failure		400		{object}	response.Response		"Invalid or malformed request body"
-//	@Failure		500		{object}	response.Response		"An error occured on the server"
-//	@Failure		default	{object}	response.Response		"An error occured"
-//	@Router			/feed [post]
-func (rc *Controller) CreateRss(w http.ResponseWriter, r *http.Request) {
+// @Summary		Create a new RSS feed
+// @Description	Create a new RSS feed by providing the feed's name and link.
+// @Tags			rss
+// @Accept			json
+// @Produce		json
+// @Param			body	body		models.CreateRssBody	true	"Create a new RSS feed"
+// @Success		201		{object}	response.RssFeed		"RSS Feed created"
+// @Failure		400		{object}	response.Response		"Invalid or malformed request body"
+// @Failure		500		{object}	response.Response		"An error occured on the server"
+// @Failure		default	{object}	response.Response		"An error occured"
+// @Router			/feed [post]
+func (c *Controller) CreateRss(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "create rss feed")
 	defer span.End()
 
 	if r.Body == nil {
-		rc.log.Error("request body is missing")
-		response.Error(w, "Request body missing", http.StatusBadRequest, rc.log)
+		c.log.Error("request body is missing")
+		response.Error(w, "Request body missing", http.StatusBadRequest, c.log)
 		return
 	}
 
 	var body models.CreateRssBody
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
-		rc.log.Error("invalid request body", zap.Error(err))
-		response.Error(w, "Incorrect or Malformed request body", http.StatusBadRequest, rc.log)
+		c.log.Error("invalid request body", zap.Error(err))
+		response.Error(w, "Incorrect or Malformed request body", http.StatusBadRequest, c.log)
 		return
 	}
 
 	if err = Validate.Struct(body); err != nil {
-		rc.log.Error("request body failed some validations", zap.Error(err))
-		response.Error(w, err.Error(), http.StatusBadRequest, rc.log)
+		c.log.Error("request body failed some validations", zap.Error(err))
+		response.Error(w, err.Error(), http.StatusBadRequest, c.log)
 		return
 	}
 
 	meta, err := getRSSMeta(body.Link)
 	if err != nil {
-		rc.log.Error(err.Error(), zap.Error(err))
-		response.Error(w, "an error occured while fetching rss metadata", http.StatusUnprocessableEntity, rc.log)
+		c.log.Error(err.Error(), zap.Error(err))
+		response.Error(w, "an error occured while fetching rss metadata", http.StatusUnprocessableEntity, c.log)
 		return
 	}
 
@@ -176,15 +176,15 @@ func (rc *Controller) CreateRss(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := ulid.Make().String()
-	feed, err := rc.rssService.Create(spanctx, id, body.Link, meta)
+	feed, err := c.rssRepo.Create(spanctx, id, body.Link, meta)
 	if err != nil {
 		status, msg := pgerrors.Details(err)
-		rc.log.Error("could not create new feed", zap.Error(err))
-		response.Error(w, msg, status, rc.log)
+		c.log.Error("could not create new feed", zap.Error(err))
+		response.Error(w, msg, status, c.log)
 		return
 	}
 
-	response.Success(w, "rss feed created successfully", http.StatusCreated, feed, rc.log)
+	response.Success(w, "rss feed created successfully", http.StatusCreated, feed, c.log)
 }
 
 func getRSSMeta(link string) (models.RSSMeta, error) {

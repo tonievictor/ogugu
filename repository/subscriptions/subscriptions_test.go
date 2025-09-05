@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"ogugu/models"
-	"ogugu/services"
-	"ogugu/services/rss"
-	"ogugu/services/users"
+	"ogugu/repository"
+	"ogugu/repository/rss"
+	"ogugu/repository/users"
 )
 
 func TestSubscriptionService(t *testing.T) {
@@ -19,7 +19,7 @@ func TestSubscriptionService(t *testing.T) {
 	require.NoError(t, err)
 
 	mfile := "file://" + filepath.Dir(filepath.Dir(dir)) + "/migrations"
-	db, teardown := services.SetupTestDB(t, mfile)
+	db, teardown := repository.SetupTestDB(t, mfile)
 	t.Cleanup(teardown)
 
 	rssid := "rssid"

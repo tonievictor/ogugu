@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"ogugu/services"
+	"ogugu/repository"
 )
 
 func TestAuthService(t *testing.T) {
@@ -15,7 +15,7 @@ func TestAuthService(t *testing.T) {
 	require.NoError(t, err)
 
 	mfile := "file://" + filepath.Dir(filepath.Dir(dir)) + "/migrations"
-	db, teardown := services.SetupTestDB(t, mfile)
+	db, teardown := repository.SetupTestDB(t, mfile)
 	t.Cleanup(teardown)
 
 	as := New(db)

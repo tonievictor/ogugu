@@ -15,8 +15,8 @@ import (
 	"ogugu/controllers/common/pgerrors"
 	"ogugu/controllers/common/response"
 	"ogugu/models"
-	"ogugu/services/auth"
-	"ogugu/services/users"
+	"ogugu/repository/auth"
+	"ogugu/repository/users"
 )
 
 var (
@@ -25,42 +25,42 @@ var (
 )
 
 type Controller struct {
-	cache       *redis.Client
-	log         *zap.Logger
-	userService *users.Service
-	authService *auth.Service
+	cache    *redis.Client
+	log      *zap.Logger
+	userRepo *users.Repository
+	authRepo *auth.Repository
 }
 
-func New(c *redis.Client, l *zap.Logger, u *users.Service, a *auth.Service) *Controller {
+func New(c *redis.Client, l *zap.Logger, u *users.Repository, a *auth.Repository) *Controller {
 	return &Controller{
-		cache:       c,
-		log:         l,
-		userService: u,
-		authService: a,
+		cache:    c,
+		log:      l,
+		userRepo: u,
+		authRepo: a,
 	}
 }
 
-//	@Summary		sign out
-//	@Description	sign out from current session
-//	@Security		BearerAuth
-//	@Tags			account
-//	@Accept			json
-//	@Produce		json
-//	@Sucess			204
-//	@Failure		401		{object}	response.Response
-//	@Failure		500		{object}	response.Response
-//	@Failure		default	{object}	response.Response
-//	@Router			/signout [delete]
-func (ac *Controller) Signout(w http.ResponseWriter, r *http.Request) {
+// @Summary		sign out
+// @Description	sign out from current session
+// @Security		BearerAuth
+// @Tags			account
+// @Accept			json
+// @Produce		json
+// @Sucess			204
+// @Failure		401		{object}	response.Response
+// @Failure		500		{object}	response.Response
+// @Failure		default	{object}	response.Response
+// @Router			/signout [delete]
+func (c *Controller) Signout(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "sign out")
 	defer span.End()
 
 	sess := r.Context().Value(models.AuthSessionKey).(models.Session)
 
-	err := ac.cache.SetEx(spanctx, sess.ID, "", time.Second).Err()
+	err := c.cache.SetEx(spanctx, sess.ID, "", time.Second).Err()
 	if err != nil {
-		ac.log.Error("could not delete user session", zap.Error(err))
-		response.Error(w, "An error occured while deleting the session", http.StatusInternalServerError, ac.log)
+		c.log.Error("could not delete user session", zap.Error(err))
+		response.Error(w, "An error occured while deleting the session", http.StatusInternalServerError, c.log)
 		return
 	}
 
@@ -68,61 +68,61 @@ func (ac *Controller) Signout(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-//	@Summary		sign in
-//	@Description	signin to an existing account
-//	@Tags			account
-//	@Accept			json
-//	@Produce		json
-//	@Param			body	body		models.SigninBody	true	"body"
-//	@Success		200		{object}	response.UserWithAuth
-//	@Failure		400		{object}	response.Response
-//	@Failure		500		{object}	response.Response
-//	@Router			/signin [post]
-func (ac *Controller) Signin(w http.ResponseWriter, r *http.Request) {
+// @Summary		sign in
+// @Description	signin to an existing account
+// @Tags			account
+// @Accept			json
+// @Produce		json
+// @Param			body	body		models.SigninBody	true	"body"
+// @Success		200		{object}	response.UserWithAuth
+// @Failure		400		{object}	response.Response
+// @Failure		500		{object}	response.Response
+// @Router			/signin [post]
+func (c *Controller) Signin(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "Sign in")
 	defer span.End()
 
 	if r.Body == nil {
-		ac.log.Error("request body is missing")
-		response.Error(w, "Request body missing", http.StatusBadRequest, ac.log)
+		c.log.Error("request body is missing")
+		response.Error(w, "Request body missing", http.StatusBadRequest, c.log)
 		return
 	}
 
 	var body models.SigninBody
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
-		ac.log.Error("invalid request body", zap.Error(err))
-		response.Error(w, "Incorrect or Malformed request body", http.StatusBadRequest, ac.log)
+		c.log.Error("invalid request body", zap.Error(err))
+		response.Error(w, "Incorrect or Malformed request body", http.StatusBadRequest, c.log)
 		return
 	}
 
 	if err = Validate.Struct(body); err != nil {
-		ac.log.Error("invalid request body", zap.Error(err))
-		response.Error(w, err.Error(), http.StatusBadRequest, ac.log)
+		c.log.Error("invalid request body", zap.Error(err))
+		response.Error(w, err.Error(), http.StatusBadRequest, c.log)
 		return
 	}
 
-	user, err := ac.userService.GetUser(spanctx, "email", body.Email)
+	user, err := c.userRepo.GetUser(spanctx, "email", body.Email)
 	if err != nil {
-		ac.log.Error("an error occured while fetching user", zap.Error(err))
+		c.log.Error("an error occured while fetching user", zap.Error(err))
 		status, _ := pgerrors.Details(err)
-		response.Error(w, "Login Failed, check credentials", status, ac.log)
+		response.Error(w, "Login Failed, check credentials", status, c.log)
 		return
 	}
 
-	hashpwd, err := ac.authService.GetPasswordWithUserID(spanctx, user.ID)
+	hashpwd, err := c.authRepo.GetPasswordWithUserID(spanctx, user.ID)
 	if err != nil {
-		ac.log.Error("an error occured while fetching user", zap.Error(err))
+		c.log.Error("an error occured while fetching user", zap.Error(err))
 		status, _ := pgerrors.Details(err)
-		response.Error(w, "Login Failed, check credentials", status, ac.log)
+		response.Error(w, "Login Failed, check credentials", status, c.log)
 		return
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(hashpwd), []byte(body.Password))
 	if err != nil {
-		ac.log.Error("password mismatch", zap.Error(err))
+		c.log.Error("password mismatch", zap.Error(err))
 		status, _ := pgerrors.Details(err)
-		response.Error(w, "Login Failed, check credentials", status, ac.log)
+		response.Error(w, "Login Failed, check credentials", status, c.log)
 		return
 	}
 
@@ -134,15 +134,15 @@ func (ac *Controller) Signin(w http.ResponseWriter, r *http.Request) {
 		ExpiryTime: time.Now().Add(time.Hour * 24 * 3),
 	})
 	if err != nil {
-		ac.log.Error("unable to marshal session", zap.Error(err))
-		response.Error(w, "Login Failed, please try again", http.StatusInternalServerError, ac.log)
+		c.log.Error("unable to marshal session", zap.Error(err))
+		response.Error(w, "Login Failed, please try again", http.StatusInternalServerError, c.log)
 		return
 	}
 
-	err = ac.cache.Set(spanctx, sessionid, session, time.Second*259200).Err()
+	err = c.cache.Set(spanctx, sessionid, session, time.Second*259200).Err()
 	if err != nil && err != redis.Nil {
-		ac.log.Error("unable to create session", zap.Error(err))
-		response.Error(w, "Login Failed, please try again", http.StatusInternalServerError, ac.log)
+		c.log.Error("unable to create session", zap.Error(err))
+		response.Error(w, "Login Failed, please try again", http.StatusInternalServerError, c.log)
 		return
 	}
 
@@ -150,66 +150,66 @@ func (ac *Controller) Signin(w http.ResponseWriter, r *http.Request) {
 		User:      user,
 		AuthToken: sessionid,
 	}
-	response.Success(w, "Login Successful", http.StatusOK, data, ac.log)
+	response.Success(w, "Login Successful", http.StatusOK, data, c.log)
 }
 
-//	@Summary		sign up
-//	@Description	create a new account
-//	@Tags			account
-//	@Accept			json
-//	@Produce		json
-//	@Param			body	body		models.CreateUserBody	true	"body"
-//	@Success		201		{object}	response.User
-//	@Failure		400		{object}	response.Response
-//	@Failure		500		{object}	response.Response
-//	@Router			/signup [post]
-func (ac *Controller) Signup(w http.ResponseWriter, r *http.Request) {
+// @Summary		sign up
+// @Description	create a new account
+// @Tags			account
+// @Accept			json
+// @Produce		json
+// @Param			body	body		models.CreateUserBody	true	"body"
+// @Success		201		{object}	response.User
+// @Failure		400		{object}	response.Response
+// @Failure		500		{object}	response.Response
+// @Router			/signup [post]
+func (c *Controller) Signup(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "Sign Up")
 	defer span.End()
 
 	if r.Body == nil {
-		ac.log.Error("request body is missing")
-		response.Error(w, "Request body missing", http.StatusBadRequest, ac.log)
+		c.log.Error("request body is missing")
+		response.Error(w, "Request body missing", http.StatusBadRequest, c.log)
 		return
 	}
 
 	var body models.CreateUserBody
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
-		ac.log.Error("invalid request body", zap.Error(err))
-		response.Error(w, "Incorrect or Malformed request body", http.StatusBadRequest, ac.log)
+		c.log.Error("invalid request body", zap.Error(err))
+		response.Error(w, "Incorrect or Malformed request body", http.StatusBadRequest, c.log)
 		return
 	}
 
 	if err = Validate.Struct(body); err != nil {
-		ac.log.Error("invalid request body", zap.Error(err))
-		response.Error(w, err.Error(), http.StatusBadRequest, ac.log)
+		c.log.Error("invalid request body", zap.Error(err))
+		response.Error(w, err.Error(), http.StatusBadRequest, c.log)
 		return
 	}
 
 	id := ulid.Make().String()
-	user, err := ac.userService.CreateUser(spanctx, id, body)
+	user, err := c.userRepo.CreateUser(spanctx, id, body)
 	if err != nil {
-		ac.log.Error("cannot create new user", zap.Error(err))
+		c.log.Error("cannot create new user", zap.Error(err))
 		status, message := pgerrors.Details(err)
-		response.Error(w, message, status, ac.log)
+		response.Error(w, message, status, c.log)
 		return
 	}
 
 	hashed, err := bcrypt.GenerateFromPassword([]byte(body.Password), 4)
 	if err != nil {
-		ac.log.Error("cannot create new user", zap.Error(err))
-		response.Error(w, "An error occured while creating the user", http.StatusInternalServerError, ac.log)
+		c.log.Error("cannot create new user", zap.Error(err))
+		response.Error(w, "An error occured while creating the user", http.StatusInternalServerError, c.log)
 		return
 	}
 
-	err = ac.authService.CreateAuth(spanctx, user.ID, string(hashed))
+	err = c.authRepo.CreateAuth(spanctx, user.ID, string(hashed))
 	if err != nil {
-		ac.log.Error("cannot create user auth details", zap.Error(err))
+		c.log.Error("cannot create user auth details", zap.Error(err))
 		status, message := pgerrors.Details(err)
-		response.Error(w, message, status, ac.log)
+		response.Error(w, message, status, c.log)
 		return
 	}
 
-	response.Success(w, "Sign up successfull", http.StatusCreated, user, ac.log)
+	response.Success(w, "Sign up successfull", http.StatusCreated, user, c.log)
 }

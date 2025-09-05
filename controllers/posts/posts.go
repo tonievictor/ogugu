@@ -8,35 +8,35 @@ import (
 	"go.opentelemetry.io/otel"
 	"ogugu/controllers/common/pgerrors"
 	"ogugu/controllers/common/response"
-	"ogugu/services/posts"
+	"ogugu/repository/posts"
 )
 
 var tracer = otel.Tracer("posts controller")
 
 type Controller struct {
-	log         *zap.Logger
-	postService *posts.Service
+	log      *zap.Logger
+	postRepo *posts.Repository
 }
 
-func New(log *zap.Logger, ps *posts.Service) *Controller {
+func New(log *zap.Logger, ps *posts.Repository) *Controller {
 	return &Controller{
-		log:         log,
-		postService: ps,
+		log:      log,
+		postRepo: ps,
 	}
 }
 
-//	@Summary		get all posts
-//	@Description	get all posts
-//	@Tags			posts
-//	@Produce		json
-//	@Success		200		{object}	response.Posts		"Posts found"
-//	@Failure		default	{object}	response.Response	"Unable to get posts"
-//	@Router			/posts [get]
+// @Summary		get all posts
+// @Description	get all posts
+// @Tags			posts
+// @Produce		json
+// @Success		200		{object}	response.Posts		"Posts found"
+// @Failure		default	{object}	response.Response	"Unable to get posts"
+// @Router			/posts [get]
 func (pc *Controller) FetchPosts(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "fetch all posts")
 	defer span.End()
 
-	feed, err := pc.postService.Fetch(spanctx)
+	feed, err := pc.postRepo.Fetch(spanctx)
 	if err != nil {
 		pc.log.Error("An error occured while fetching all post entries", zap.Error(err))
 		status, message := pgerrors.Details(err)
@@ -52,21 +52,21 @@ func (pc *Controller) FetchPosts(w http.ResponseWriter, r *http.Request) {
 	response.Success(w, message, http.StatusOK, feed, pc.log)
 }
 
-//	@Summary		get a post
-//	@Description	get a post by ID
-//	@Tags			posts
-//	@Produce		json
-//	@Param			id		path		string				true	"Post ID"
-//	@Success		200		{object}	response.Post		"Post with ID found"
-//	@Failure		404		{object}	response.Response	"Post with ID not found"
-//	@Failure		default	{object}	response.Response	"Unable to get post with id"
-//	@Router			/posts/{id} [get]
+// @Summary		get a post
+// @Description	get a post by ID
+// @Tags			posts
+// @Produce		json
+// @Param			id		path		string				true	"Post ID"
+// @Success		200		{object}	response.Post		"Post with ID found"
+// @Failure		404		{object}	response.Response	"Post with ID not found"
+// @Failure		default	{object}	response.Response	"Unable to get post with id"
+// @Router			/posts/{id} [get]
 func (pc *Controller) GetPostByID(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "get a post by id")
 	defer span.End()
 
 	id := r.PathValue("id")
-	post, err := pc.postService.GetByID(spanctx, id)
+	post, err := pc.postRepo.GetByID(spanctx, id)
 	if err != nil {
 		pc.log.Error("unable to get post", zap.Error(err))
 		status, message := pgerrors.Details(err)

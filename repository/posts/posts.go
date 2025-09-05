@@ -13,15 +13,15 @@ var tracer = otel.Tracer("posts service")
 
 const dbtimeout = time.Second * 3
 
-type Service struct {
+type Repository struct {
 	db *sql.DB
 }
 
-func New(db *sql.DB) *Service {
-	return &Service{db: db}
+func New(db *sql.DB) *Repository {
+	return &Repository{db: db}
 }
 
-func (ps *Service) CreatePost(
+func (r *Repository) CreatePost(
 	ctx context.Context, id string, rss_id string, p models.CreatePost,
 ) (models.Post, error) {
 	spanctx, span := tracer.Start(ctx, "creating a new post")
@@ -35,7 +35,7 @@ func (ps *Service) CreatePost(
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		RETURNING id, title, description, link, pubdate, created_at, updated_at;
 	`
-	row := ps.db.QueryRowContext(
+	row := r.db.QueryRowContext(
 		dbctx, query, id, rss_id, p.Title, p.Description, p.Link, p.PubDate, time.Now(), time.Now(),
 	)
 
@@ -56,7 +56,7 @@ func (ps *Service) CreatePost(
 	return post, nil
 }
 
-func (ps *Service) GetByID(ctx context.Context, id string) (models.Post, error) {
+func (r *Repository) GetByID(ctx context.Context, id string) (models.Post, error) {
 	spanctx, span := tracer.Start(ctx, "get a post by id")
 	defer span.End()
 
@@ -67,7 +67,7 @@ func (ps *Service) GetByID(ctx context.Context, id string) (models.Post, error) 
 		SELECT id, title, description, link, pubdate, created_at, updated_at 
 		FROM posts WHERE id = $1;
 	`
-	row := ps.db.QueryRowContext(dbctx, query, id)
+	row := r.db.QueryRowContext(dbctx, query, id)
 	var post models.Post
 	err := row.Scan(
 		&post.ID,
@@ -85,7 +85,7 @@ func (ps *Service) GetByID(ctx context.Context, id string) (models.Post, error) 
 	return post, nil
 }
 
-func (ps *Service) Fetch(ctx context.Context) ([]models.Post, error) {
+func (r *Repository) Fetch(ctx context.Context) ([]models.Post, error) {
 	spanctx, span := tracer.Start(ctx, "fetch all posts")
 	defer span.End()
 
@@ -95,7 +95,7 @@ func (ps *Service) Fetch(ctx context.Context) ([]models.Post, error) {
 	query := `
 		SELECT id, title, description, link, pubdate, created_at, updated_at FROM posts;
 	`
-	rows, err := ps.db.QueryContext(dbctx, query)
+	rows, err := r.db.QueryContext(dbctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func (ps *Service) Fetch(ctx context.Context) ([]models.Post, error) {
 	return posts, nil
 }
 
-func (ps *Service) DeletePost(ctx context.Context, id string) (int64, error) {
+func (ps *Repository) DeletePost(ctx context.Context, id string) (int64, error) {
 	spanctx, span := tracer.Start(ctx, "delete post by id")
 	defer span.End()
 

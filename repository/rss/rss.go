@@ -15,17 +15,17 @@ const dbtimeout = time.Second * 3
 
 var tracer = otel.Tracer("rss service")
 
-type Service struct {
+type Repository struct {
 	db *sql.DB
 }
 
-func New(db *sql.DB) *Service {
-	return &Service{
+func New(db *sql.DB) *Repository {
+	return &Repository{
 		db: db,
 	}
 }
 
-func (r *Service) DeleteByID(ctx context.Context, id string) (int64, error) {
+func (r *Repository) DeleteByID(ctx context.Context, id string) (int64, error) {
 	spanctx, span := tracer.Start(ctx, "delete rss feed by id")
 	defer span.End()
 
@@ -40,7 +40,7 @@ func (r *Service) DeleteByID(ctx context.Context, id string) (int64, error) {
 	return res.RowsAffected()
 }
 
-func (r *Service) UpdateField(ctx context.Context, id, field, value any) (models.RssFeed, error) {
+func (r *Repository) UpdateField(ctx context.Context, id, field, value any) (models.RssFeed, error) {
 	spanctx, span := tracer.Start(ctx, "update rss feed")
 	defer span.End()
 
@@ -77,7 +77,7 @@ func (r *Service) UpdateField(ctx context.Context, id, field, value any) (models
 	return rss, nil
 }
 
-func (r *Service) Fetch(ctx context.Context) ([]models.RssFeed, error) {
+func (r *Repository) Fetch(ctx context.Context) ([]models.RssFeed, error) {
 	spanctx, span := tracer.Start(ctx, "fetch all rss feeds")
 	defer span.End()
 
@@ -112,7 +112,7 @@ func (r *Service) Fetch(ctx context.Context) ([]models.RssFeed, error) {
 	return allrss, nil
 }
 
-func (r *Service) FindByID(ctx context.Context, id string) (models.RssFeed, error) {
+func (r *Repository) FindByID(ctx context.Context, id string) (models.RssFeed, error) {
 	spanctx, span := tracer.Start(ctx, "fetch rss feed by id")
 	defer span.End()
 
@@ -140,7 +140,7 @@ func (r *Service) FindByID(ctx context.Context, id string) (models.RssFeed, erro
 	return rss, nil
 }
 
-func (r *Service) FindByLink(ctx context.Context, link string) (models.RssFeed, error) {
+func (r *Repository) FindByLink(ctx context.Context, link string) (models.RssFeed, error) {
 	spanctx, span := tracer.Start(ctx, "fetch rss feed by link")
 	defer span.End()
 
@@ -168,7 +168,7 @@ func (r *Service) FindByLink(ctx context.Context, link string) (models.RssFeed, 
 	return rss, nil
 }
 
-func (r *Service) Create(ctx context.Context, id, link string, body models.RSSMeta) (models.RssFeed, error) {
+func (r *Repository) Create(ctx context.Context, id, link string, body models.RSSMeta) (models.RssFeed, error) {
 	spanctx, span := tracer.Start(ctx, "insert rss feed")
 	defer span.End()
 

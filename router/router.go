@@ -15,11 +15,11 @@ import (
 	postcontroller "ogugu/controllers/posts"
 	rsscontroller "ogugu/controllers/rss"
 	subcontroller "ogugu/controllers/subscriptions"
-	authservice "ogugu/services/auth"
-	postservice "ogugu/services/posts"
-	rssservice "ogugu/services/rss"
-	subservice "ogugu/services/subscriptions"
-	userservice "ogugu/services/users"
+	authservice "ogugu/repository/auth"
+	postservice "ogugu/repository/posts"
+	rssservice "ogugu/repository/rss"
+	subservice "ogugu/repository/subscriptions"
+	userservice "ogugu/repository/users"
 )
 
 func Routes(db *sql.DB, cache *redis.Client, logger *zap.Logger) http.Handler {

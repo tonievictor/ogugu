@@ -13,7 +13,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/oklog/ulid/v2"
-	"ogugu/services/subscriptions"
+	"ogugu/repository/subscriptions"
 )
 
 var (
@@ -24,17 +24,17 @@ var (
 type Controller struct {
 	cache   *redis.Client
 	log     *zap.Logger
-	service *subscriptions.Service
+	subRepo *subscriptions.Repository
 }
 
 func New(cache *redis.Client,
 	log *zap.Logger,
-	ss *subscriptions.Service,
+	r *subscriptions.Repository,
 ) *Controller {
 	return &Controller{
 		cache:   cache,
 		log:     log,
-		service: ss,
+		subRepo: r,
 	}
 }
 
@@ -49,17 +49,17 @@ func New(cache *redis.Client,
 // @Failure		500		{object}	response.Response
 // @Failure		default	{object}	response.Response
 // @Router			/subscriptions [get]
-func (sc *Controller) GetUserSubs(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) GetUserSubs(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "get user's subscriptions")
 	defer span.End()
 
 	session := r.Context().Value(models.AuthSessionKey).(models.Session)
 
-	subs, err := sc.service.GetSubsByUserID(spanctx, session.UserID)
+	subs, err := c.subRepo.GetSubsByUserID(spanctx, session.UserID)
 	if err != nil {
-		sc.log.Error("could not get user's subscriptions", zap.Error(err))
+		c.log.Error("could not get user's subscriptions", zap.Error(err))
 		status, message := pgerrors.Details(err)
-		response.Error(w, message, status, sc.log)
+		response.Error(w, message, status, c.log)
 		return
 	}
 
@@ -67,7 +67,7 @@ func (sc *Controller) GetUserSubs(w http.ResponseWriter, r *http.Request) {
 	if len(subs) == 0 {
 		msg = "No resource"
 	}
-	response.Success(w, msg, http.StatusOK, subs, sc.log)
+	response.Success(w, msg, http.StatusOK, subs, c.log)
 }
 
 // @Summary		subscribe
@@ -82,41 +82,41 @@ func (sc *Controller) GetUserSubs(w http.ResponseWriter, r *http.Request) {
 // @Failure		500		{object}	response.Response
 // @Failure		default	{object}	response.Response
 // @Router			/subscriptions [post]
-func (sc *Controller) Subscribe(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) Subscribe(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "subscribe to an rss feed")
 	defer span.End()
 
 	if r.Body == nil {
-		sc.log.Error("request body is missing")
-		response.Error(w, "Request body missing", http.StatusBadRequest, sc.log)
+		c.log.Error("request body is missing")
+		response.Error(w, "Request body missing", http.StatusBadRequest, c.log)
 		return
 	}
 
 	var body models.SubscriptionBody
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
-		sc.log.Error("Could not read request body", zap.Error(err))
-		response.Error(w, "Unable to read request body", http.StatusBadRequest, sc.log)
+		c.log.Error("Could not read request body", zap.Error(err))
+		response.Error(w, "Unable to read request body", http.StatusBadRequest, c.log)
 		return
 	}
 
 	if err = Validate.Struct(body); err != nil {
-		sc.log.Error("request body failed some validations", zap.Error(err))
-		response.Error(w, err.Error(), http.StatusBadRequest, sc.log)
+		c.log.Error("request body failed some validations", zap.Error(err))
+		response.Error(w, err.Error(), http.StatusBadRequest, c.log)
 		return
 	}
 
 	u := r.Context().Value(models.AuthSessionKey).(models.Session)
 	id := ulid.Make().String()
-	sub, err := sc.service.CreateSub(spanctx, id, u.UserID, body.RssID)
+	sub, err := c.subRepo.CreateSub(spanctx, id, u.UserID, body.RssID)
 	if err != nil {
-		sc.log.Error("could not add subscription", zap.Error(err))
+		c.log.Error("could not add subscription", zap.Error(err))
 		status, message := pgerrors.Details(err)
-		response.Error(w, message, status, sc.log)
+		response.Error(w, message, status, c.log)
 		return
 	}
 
-	response.Success(w, "subscription successful", http.StatusCreated, sub, sc.log)
+	response.Success(w, "subscription successful", http.StatusCreated, sub, c.log)
 }
 
 // @Summary		unsubscribe
@@ -131,36 +131,36 @@ func (sc *Controller) Subscribe(w http.ResponseWriter, r *http.Request) {
 // @Failure		500		{object}	response.Response
 // @Failure		default	{object}	response.Response
 // @Router			/subscriptions [delete]
-func (sc *Controller) Unsubscribe(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) Unsubscribe(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "unsubscribe from an rss feed")
 	defer span.End()
 
 	if r.Body == nil {
-		sc.log.Error("request body is missing")
-		response.Error(w, "Request body missing", http.StatusBadRequest, sc.log)
+		c.log.Error("request body is missing")
+		response.Error(w, "Request body missing", http.StatusBadRequest, c.log)
 		return
 	}
 
 	var body models.SubscriptionBody
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
-		sc.log.Error("Could not read request body", zap.Error(err))
-		response.Error(w, "Unable to read request body", http.StatusBadRequest, sc.log)
+		c.log.Error("Could not read request body", zap.Error(err))
+		response.Error(w, "Unable to read request body", http.StatusBadRequest, c.log)
 		return
 	}
 
 	if err = Validate.Struct(body); err != nil {
-		sc.log.Error("request body failed some validations", zap.Error(err))
-		response.Error(w, err.Error(), http.StatusBadRequest, sc.log)
+		c.log.Error("request body failed some validations", zap.Error(err))
+		response.Error(w, err.Error(), http.StatusBadRequest, c.log)
 		return
 	}
 
 	session := r.Context().Value(models.AuthSessionKey).(models.Session)
-	_, err = sc.service.DeleteSub(spanctx, session.UserID, body.RssID)
+	_, err = c.subRepo.DeleteSub(spanctx, session.UserID, body.RssID)
 	if err != nil {
-		sc.log.Error("could not delete subscription", zap.Error(err))
+		c.log.Error("could not delete subscription", zap.Error(err))
 		status, message := pgerrors.Details(err)
-		response.Error(w, message, status, sc.log)
+		response.Error(w, message, status, c.log)
 		return
 	}
 
@@ -179,16 +179,16 @@ func (sc *Controller) Unsubscribe(w http.ResponseWriter, r *http.Request) {
 // @Failure		500		{object}	response.Response
 // @Failure		default	{object}	response.Response
 // @Router			/subscriptions/posts [get]
-func (sc *Controller) GetPostFromSub(w http.ResponseWriter, r *http.Request) {
+func (c *Controller) GetPostFromSub(w http.ResponseWriter, r *http.Request) {
 	spanctx, span := tracer.Start(r.Context(), "get post from sub")
 	defer span.End()
 
 	session := r.Context().Value(models.AuthSessionKey).(models.Session)
-	posts, err := sc.service.GetPostFromSubScriptions(spanctx, session.UserID)
+	posts, err := c.subRepo.GetPostFromSubScriptions(spanctx, session.UserID)
 	if err != nil {
-		sc.log.Error("cannot get posts", zap.Error(err))
+		c.log.Error("cannot get posts", zap.Error(err))
 		status, msg := pgerrors.Details(err)
-		response.Error(w, msg, status, sc.log)
+		response.Error(w, msg, status, c.log)
 		return
 	}
 
@@ -196,5 +196,5 @@ func (sc *Controller) GetPostFromSub(w http.ResponseWriter, r *http.Request) {
 	if len(posts) == 0 {
 		msg = "no resource found"
 	}
-	response.Success(w, msg, http.StatusOK, posts, sc.log)
+	response.Success(w, msg, http.StatusOK, posts, c.log)
 }

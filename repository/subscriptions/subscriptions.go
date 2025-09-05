@@ -13,17 +13,17 @@ const dbtimeout = time.Second * 3
 
 var tracer = otel.Tracer("rss service")
 
-type Service struct {
+type Repository struct {
 	db *sql.DB
 }
 
-func New(db *sql.DB) *Service {
-	return &Service{
+func New(db *sql.DB) *Repository {
+	return &Repository{
 		db: db,
 	}
 }
 
-func (ss *Service) DeleteSub(ctx context.Context, user_id, rss_id string) (int64, error) {
+func (r *Repository) DeleteSub(ctx context.Context, user_id, rss_id string) (int64, error) {
 	spanctx, span := tracer.Start(ctx, "delete a subscription")
 	defer span.End()
 
@@ -31,15 +31,15 @@ func (ss *Service) DeleteSub(ctx context.Context, user_id, rss_id string) (int64
 	defer cancel()
 
 	query := `DELETE FROM subscriptions WHERE user_id = $1 AND rss_id = $2;`
-	r, err := ss.db.ExecContext(dbctx, query, user_id, rss_id)
+	row, err := r.db.ExecContext(dbctx, query, user_id, rss_id)
 	if err != nil {
 		return 0, err
 	}
 
-	return r.RowsAffected()
+	return row.RowsAffected()
 }
 
-func (ss *Service) CreateSub(ctx context.Context, id, user_id, rss_id string) (models.Subscription, error) {
+func (r *Repository) CreateSub(ctx context.Context, id, user_id, rss_id string) (models.Subscription, error) {
 	spanctx, span := tracer.Start(ctx, "create a new subscription")
 	defer span.End()
 
@@ -53,7 +53,7 @@ func (ss *Service) CreateSub(ctx context.Context, id, user_id, rss_id string) (m
 	`
 
 	var sub models.Subscription
-	row := ss.db.QueryRowContext(dbctx, query, id, user_id, rss_id, time.Now(), time.Now())
+	row := r.db.QueryRowContext(dbctx, query, id, user_id, rss_id, time.Now(), time.Now())
 	err := row.Scan(&sub.ID, &sub.UserID, &sub.CreatedAt, &sub.UpdatedAt)
 	if err != nil {
 		return models.Subscription{}, err
@@ -62,7 +62,7 @@ func (ss *Service) CreateSub(ctx context.Context, id, user_id, rss_id string) (m
 	return sub, nil
 }
 
-func (ss *Service) GetSubByID(ctx context.Context, id string) (models.Subscription, error) {
+func (r *Repository) GetSubByID(ctx context.Context, id string) (models.Subscription, error) {
 	spanctx, span := tracer.Start(ctx, "get subscription by id")
 	defer span.End()
 
@@ -78,7 +78,7 @@ func (ss *Service) GetSubByID(ctx context.Context, id string) (models.Subscripti
 	`
 
 	var sub models.Subscription
-	row := ss.db.QueryRowContext(dbctx, query, id)
+	row := r.db.QueryRowContext(dbctx, query, id)
 	err := row.Scan(
 		&sub.ID,
 		&sub.UserID,
@@ -97,7 +97,7 @@ func (ss *Service) GetSubByID(ctx context.Context, id string) (models.Subscripti
 	return sub, nil
 }
 
-func (ss *Service) GetSubs(ctx context.Context) ([]models.Subscription, error) {
+func (r *Repository) GetSubs(ctx context.Context) ([]models.Subscription, error) {
 	spanctx, span := tracer.Start(ctx, "get all subscriptions")
 	defer span.End()
 
@@ -110,7 +110,7 @@ func (ss *Service) GetSubs(ctx context.Context) ([]models.Subscription, error) {
 		FROM subscriptions sub
 		INNER JOIN rss ON rss.id = sub.rss_id;
 	`
-	rows, err := ss.db.QueryContext(dbctx, query)
+	rows, err := r.db.QueryContext(dbctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +138,7 @@ func (ss *Service) GetSubs(ctx context.Context) ([]models.Subscription, error) {
 	return subs, nil
 }
 
-func (ss *Service) GetSubsByUserID(ctx context.Context, user_id string) ([]models.Subscription, error) {
+func (r *Repository) GetSubsByUserID(ctx context.Context, user_id string) ([]models.Subscription, error) {
 	spanctx, span := tracer.Start(ctx, "get all subscriptions by user id")
 	defer span.End()
 
@@ -152,7 +152,7 @@ func (ss *Service) GetSubsByUserID(ctx context.Context, user_id string) ([]model
 		INNER JOIN rss ON rss.id = sub.rss_id
 		WHERE sub.user_id = $1;
 	`
-	rows, err := ss.db.QueryContext(dbctx, query, user_id)
+	rows, err := r.db.QueryContext(dbctx, query, user_id)
 	if err != nil {
 		return nil, err
 	}
@@ -181,7 +181,7 @@ func (ss *Service) GetSubsByUserID(ctx context.Context, user_id string) ([]model
 	return subs, nil
 }
 
-func (ss *Service) GetPostFromSubScriptions(ctx context.Context, user_id string) ([]models.Post, error) {
+func (r *Repository) GetPostFromSubScriptions(ctx context.Context, user_id string) ([]models.Post, error) {
 	spanctx, span := tracer.Start(ctx, "get post that user from rss subscriptions")
 	defer span.End()
 
@@ -194,7 +194,7 @@ func (ss *Service) GetPostFromSubScriptions(ctx context.Context, user_id string)
 		INNER JOIN posts ON posts.rss_id = sub.rss_id
 		WHERE sub.user_id = $1;
 	`
-	rows, err := ss.db.QueryContext(dbctx, query, user_id)
+	rows, err := r.db.QueryContext(dbctx, query, user_id)
 	if err != nil {
 		return nil, err
 	}

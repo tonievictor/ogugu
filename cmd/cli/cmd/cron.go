@@ -17,8 +17,8 @@ import (
 	"github.com/oklog/ulid/v2"
 
 	"ogugu/models"
-	"ogugu/services/posts"
-	"ogugu/services/rss"
+	"ogugu/repository/posts"
+	"ogugu/repository/rss"
 )
 
 // cronCmd represents the cron command

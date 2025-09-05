@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"ogugu/models"
-	"ogugu/services"
+	"ogugu/repository"
 )
 
 func TestUserService(t *testing.T) {
@@ -17,10 +17,10 @@ func TestUserService(t *testing.T) {
 	require.NoError(t, err)
 
 	mfile := "file://" + filepath.Dir(filepath.Dir(dir)) + "/migrations"
-	db, teardown := services.SetupTestDB(t, mfile)
+	db, teardown := repository.SetupTestDB(t, mfile)
 	t.Cleanup(teardown)
 
-	us := New(db) // us -> user service
+	us := New(db) // us -> user repo
 	id := "uniqueidhaha"
 
 	t.Run("create user", func(t *testing.T) {
