@@ -34,7 +34,7 @@ go get ./..
 ```
 3. Copy the `.env.example` file to `.env` and provide the necessary values for your local setup:
 ```bash
-cp .env.example .env
+cp .env.example cmd/server/.env
 ```
 4. Set up the database and cache:
 ```bash
@@ -80,7 +80,7 @@ swag init -g cmd/server/main.go
 ```
 2. Run the application
 ```bash
-go run main.go
+cd cmd/server && go run main.go
 ```
 3. Access the Swagger UI to test the API at `http://localhost:<port>/v1/swagger/index.html`
 ### View monitoring dashboard (if set up):
