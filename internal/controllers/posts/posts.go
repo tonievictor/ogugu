@@ -6,9 +6,9 @@ import (
 	"go.uber.org/zap"
 
 	"go.opentelemetry.io/otel"
-	"ogugu/controllers/common/pgerrors"
-	"ogugu/controllers/common/response"
-	"ogugu/repository/posts"
+	"ogugu/internal/controllers/common/pgerrors"
+	"ogugu/internal/controllers/common/response"
+	"ogugu/internal/repository/posts"
 )
 
 var tracer = otel.Tracer("posts controller")

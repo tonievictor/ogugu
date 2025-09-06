@@ -11,15 +11,15 @@ import (
 	"github.com/swaggo/http-swagger/v2"
 	"go.uber.org/zap"
 
-	authcontroller "ogugu/controllers/auth"
-	postcontroller "ogugu/controllers/posts"
-	rsscontroller "ogugu/controllers/rss"
-	subcontroller "ogugu/controllers/subscriptions"
-	authservice "ogugu/repository/auth"
-	postservice "ogugu/repository/posts"
-	rssservice "ogugu/repository/rss"
-	subservice "ogugu/repository/subscriptions"
-	userservice "ogugu/repository/users"
+	authcontroller "ogugu/internal/controllers/auth"
+	postcontroller "ogugu/internal/controllers/posts"
+	rsscontroller "ogugu/internal/controllers/rss"
+	subcontroller "ogugu/internal/controllers/subscriptions"
+	authRepo "ogugu/internal/repository/auth"
+	postRepo "ogugu/internal/repository/posts"
+	rssRepo "ogugu/internal/repository/rss"
+	subRepo "ogugu/internal/repository/subscriptions"
+	userRepo "ogugu/internal/repository/users"
 )
 
 func Routes(db *sql.DB, cache *redis.Client, logger *zap.Logger) http.Handler {
@@ -43,22 +43,22 @@ func Routes(db *sql.DB, cache *redis.Client, logger *zap.Logger) http.Handler {
 
 	v1.Get("/swagger/*", httpSwagger.Handler())
 
-	rc := rsscontroller.New(logger, rssservice.New(db))
+	rc := rsscontroller.New(logger, rssRepo.New(db))
 	v1.Post("/feed", rc.CreateRss)
 	v1.Get("/feed/{id}", rc.FindRssByID)
 	v1.Get("/feed", rc.Fetch)
 	v1.Delete("/feed/{id}", rc.DeleteRssByID)
 
-	ac := authcontroller.New(cache, logger, userservice.New(db), authservice.New(db))
+	ac := authcontroller.New(cache, logger, userRepo.New(db), authRepo.New(db))
 	v1.Post("/signup", ac.Signup)
 	v1.Post("/signin", ac.Signin)
 	v1.Delete("/signout", IsAuthenticated(cache, logger, ac.Signout))
 
-	pc := postcontroller.New(logger, postservice.New(db))
+	pc := postcontroller.New(logger, postRepo.New(db))
 	v1.Get("/posts", pc.FetchPosts)
 	v1.Get("/posts/{id}", pc.GetPostByID)
 
-	sc := subcontroller.New(cache, logger, subservice.New(db))
+	sc := subcontroller.New(cache, logger, subRepo.New(db))
 	v1.Post("/subscriptions", IsAuthenticated(cache, logger, sc.Subscribe))
 	v1.Delete("/subscriptions", IsAuthenticated(cache, logger, sc.Unsubscribe))
 	v1.Get("/subscriptions", IsAuthenticated(cache, logger, sc.GetUserSubs))

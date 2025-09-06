@@ -11,8 +11,8 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 
-	"ogugu/controllers/common/response"
-	"ogugu/models"
+	"ogugu/internal/controllers/common/response"
+	"ogugu/internal/models"
 )
 
 var tracer = otel.Tracer("middleware")

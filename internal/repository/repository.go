@@ -14,7 +14,7 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 
-	"ogugu/database"
+	"ogugu/internal/database"
 )
 
 func SetupTestDB(t *testing.T, mdir string) (*sql.DB, func()) {

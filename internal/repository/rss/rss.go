@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"go.opentelemetry.io/otel"
-	"ogugu/models"
+	"ogugu/internal/models"
 )
 
 const dbtimeout = time.Second * 3

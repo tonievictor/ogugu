@@ -1,4 +1,4 @@
-.env
+bin/*
 main
 ogugu
 .air.toml
@@ -7,4 +7,3 @@ tmp
 **/.terraform.lock.hcl
 **/*.tfstate
 **/*.tfstate.*
-ogugu

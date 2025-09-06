@@ -9,7 +9,7 @@ import (
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"ogugu/cmd/cli/cmd"
-	"ogugu/database"
+	"ogugu/internal/database"
 
 	"github.com/tonievictor/dotenv"
 )

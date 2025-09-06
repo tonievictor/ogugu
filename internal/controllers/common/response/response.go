@@ -6,7 +6,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"ogugu/models"
+	"ogugu/internal/models"
 )
 
 func Error(w http.ResponseWriter, message string, status int, log *zap.Logger) {

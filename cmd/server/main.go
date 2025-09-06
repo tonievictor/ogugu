@@ -15,11 +15,11 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 
-	"ogugu/database"
-	"ogugu/database/cache"
 	_ "ogugu/docs"
-	"ogugu/router"
-	"ogugu/telemetry"
+	"ogugu/internal/database"
+	"ogugu/internal/database/cache"
+	"ogugu/internal/router"
+	"ogugu/internal/telemetry"
 )
 
 //	@title			Ogugu API
@@ -29,10 +29,10 @@ import (
 //	@host		localhost:8080
 //	@BasePath	/v1/
 
-//	@securityDefinitions.apikey	BearerAuth
-//	@in							header
-//	@name						Authorization
-//	@description				Enter your auth token in the format **Bearer &lt;token&gt;**
+// @securityDefinitions.apikey	BearerAuth
+// @in							header
+// @name						Authorization
+// @description				Enter your auth token in the format **Bearer &lt;token&gt;**
 func main() {
 	dotenv.Config()
 

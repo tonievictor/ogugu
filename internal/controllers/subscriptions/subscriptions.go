@@ -4,16 +4,16 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/go-playground/validator/v10"
+	"github.com/oklog/ulid/v2"
 	"github.com/redis/go-redis/v9"
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
-	"ogugu/controllers/common/pgerrors"
-	"ogugu/controllers/common/response"
-	"ogugu/models"
 
-	"github.com/go-playground/validator/v10"
-	"github.com/oklog/ulid/v2"
-	"ogugu/repository/subscriptions"
+	"ogugu/internal/controllers/common/pgerrors"
+	"ogugu/internal/controllers/common/response"
+	"ogugu/internal/models"
+	"ogugu/internal/repository/subscriptions"
 )
 
 var (

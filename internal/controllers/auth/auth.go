@@ -12,11 +12,11 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 
-	"ogugu/controllers/common/pgerrors"
-	"ogugu/controllers/common/response"
-	"ogugu/models"
-	"ogugu/repository/auth"
-	"ogugu/repository/users"
+	"ogugu/internal/controllers/common/pgerrors"
+	"ogugu/internal/controllers/common/response"
+	"ogugu/internal/models"
+	"ogugu/internal/repository/auth"
+	"ogugu/internal/repository/users"
 )
 
 var (

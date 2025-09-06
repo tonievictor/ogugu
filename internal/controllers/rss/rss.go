@@ -12,10 +12,10 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 
-	"ogugu/controllers/common/pgerrors"
-	"ogugu/controllers/common/response"
-	"ogugu/models"
-	"ogugu/repository/rss"
+	"ogugu/internal/controllers/common/pgerrors"
+	"ogugu/internal/controllers/common/response"
+	"ogugu/internal/models"
+	"ogugu/internal/repository/rss"
 )
 
 var (
