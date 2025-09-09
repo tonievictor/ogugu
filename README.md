@@ -55,7 +55,7 @@ kind create cluster
 ```
 2. Provision infrastructure with Terraform
 ```bash
-cd terraform
+cd infra/monitoring
 terraform init
 terraform plan   
 terraform apply
