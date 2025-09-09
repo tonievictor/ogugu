@@ -26,7 +26,6 @@ import (
 //	@description	An API for an RSS aggregator
 //	@version		0.1
 
-//	@host		localhost:8080
 //	@BasePath	/v1/
 
 // @securityDefinitions.apikey	BearerAuth

@@ -903,7 +903,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "0.1",
-	Host:             "localhost:8080",
+	Host:             "",
 	BasePath:         "/v1/",
 	Schemes:          []string{},
 	Title:            "Ogugu API",

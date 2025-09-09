@@ -6,7 +6,6 @@
         "contact": {},
         "version": "0.1"
     },
-    "host": "localhost:8080",
     "basePath": "/v1/",
     "paths": {
         "/feed": {
