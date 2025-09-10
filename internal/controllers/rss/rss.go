@@ -1,8 +1,10 @@
 package rss
 
 import (
+	"database/sql"
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"io"
 	"net/http"
 	"time"
@@ -12,7 +14,6 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 
-	"ogugu/internal/controllers/common/pgerrors"
 	"ogugu/internal/controllers/common/response"
 	"ogugu/internal/models"
 	"ogugu/internal/repository/rss"
@@ -52,8 +53,7 @@ func (c *Controller) Fetch(w http.ResponseWriter, r *http.Request) {
 	feed, err := c.rssRepo.Fetch(spanctx)
 	if err != nil {
 		c.log.Error("An error occured while fetching all rss entries", zap.Error(err))
-		status, message := pgerrors.Details(err)
-		response.Error(w, message, status, c.log)
+		response.Error(w, "internal server error", http.StatusInternalServerError, c.log)
 		return
 	}
 
@@ -81,20 +81,23 @@ func (c *Controller) DeleteRssByID(w http.ResponseWriter, r *http.Request) {
 	defer span.End()
 
 	id := r.PathValue("id")
-	// DeleteByID
 	_, err := c.rssRepo.FindByID(spanctx, id)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			c.log.Warn("rss entry not found", zap.String("id", id))
+			response.Error(w, "rss with id not found", http.StatusNotFound, c.log)
+			return
+		}
+
 		c.log.Error("An error occured while deleting an rss entry", zap.String("id", id), zap.Error(err))
-		status, message := pgerrors.Details(err)
-		response.Error(w, message, status, c.log)
+		response.Error(w, "internal server error", http.StatusInternalServerError, c.log)
 		return
 	}
 
 	_, err = c.rssRepo.DeleteByID(spanctx, id)
 	if err != nil {
 		c.log.Error("An error occured while deleting an rss entry", zap.String("id", id), zap.Error(err))
-		status, message := pgerrors.Details(err)
-		response.Error(w, message, status, c.log)
+		response.Error(w, "internal server error", http.StatusInternalServerError, c.log)
 		return
 	}
 
@@ -120,9 +123,14 @@ func (c *Controller) FindRssByID(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	feed, err := c.rssRepo.FindByID(spanctx, id)
 	if err != nil {
-		c.log.Error("resource not found", zap.String("id", id), zap.Error(err))
-		status, message := pgerrors.Details(err)
-		response.Error(w, message, status, c.log)
+		if errors.Is(err, sql.ErrNoRows) {
+			c.log.Warn("rss entry not found", zap.String("id", id))
+			response.Error(w, "rss with id not found", http.StatusNotFound, c.log)
+			return
+		}
+
+		c.log.Error("an error occured while fetching rss entry", zap.String("id", id), zap.Error(err))
+		response.Error(w, "internal server error", http.StatusInternalServerError, c.log)
 		return
 	}
 
@@ -178,9 +186,8 @@ func (c *Controller) CreateRss(w http.ResponseWriter, r *http.Request) {
 	id := ulid.Make().String()
 	feed, err := c.rssRepo.Create(spanctx, id, body.Link, meta)
 	if err != nil {
-		status, msg := pgerrors.Details(err)
 		c.log.Error("could not create new feed", zap.Error(err))
-		response.Error(w, msg, status, c.log)
+		response.Error(w, "could not create new feed", http.StatusInternalServerError, c.log)
 		return
 	}
 

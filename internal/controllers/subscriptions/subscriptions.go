@@ -10,7 +10,6 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 
-	"ogugu/internal/controllers/common/pgerrors"
 	"ogugu/internal/controllers/common/response"
 	"ogugu/internal/models"
 	"ogugu/internal/repository/subscriptions"
@@ -58,8 +57,7 @@ func (c *Controller) GetUserSubs(w http.ResponseWriter, r *http.Request) {
 	subs, err := c.subRepo.GetSubsByUserID(spanctx, session.UserID)
 	if err != nil {
 		c.log.Error("could not get user's subscriptions", zap.Error(err))
-		status, message := pgerrors.Details(err)
-		response.Error(w, message, status, c.log)
+		response.Error(w, "internal server error", http.StatusInternalServerError, c.log)
 		return
 	}
 
@@ -111,8 +109,7 @@ func (c *Controller) Subscribe(w http.ResponseWriter, r *http.Request) {
 	sub, err := c.subRepo.CreateSub(spanctx, id, u.UserID, body.RssID)
 	if err != nil {
 		c.log.Error("could not add subscription", zap.Error(err))
-		status, message := pgerrors.Details(err)
-		response.Error(w, message, status, c.log)
+		response.Error(w, "could not create new subscription", http.StatusInternalServerError, c.log)
 		return
 	}
 
@@ -159,8 +156,7 @@ func (c *Controller) Unsubscribe(w http.ResponseWriter, r *http.Request) {
 	_, err = c.subRepo.DeleteSub(spanctx, session.UserID, body.RssID)
 	if err != nil {
 		c.log.Error("could not delete subscription", zap.Error(err))
-		status, message := pgerrors.Details(err)
-		response.Error(w, message, status, c.log)
+		response.Error(w, "could not unsubscribe from rss feed", http.StatusInternalServerError, c.log)
 		return
 	}
 
@@ -186,9 +182,8 @@ func (c *Controller) GetPostFromSub(w http.ResponseWriter, r *http.Request) {
 	session := r.Context().Value(models.AuthSessionKey).(models.Session)
 	posts, err := c.subRepo.GetPostFromSubScriptions(spanctx, session.UserID)
 	if err != nil {
-		c.log.Error("cannot get posts", zap.Error(err))
-		status, msg := pgerrors.Details(err)
-		response.Error(w, msg, status, c.log)
+		c.log.Error("An error occured while fetching all post entries", zap.Error(err), zap.String("userid", session.UserID))
+		response.Error(w, "internal server error", http.StatusInternalServerError, c.log)
 		return
 	}
 

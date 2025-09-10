@@ -12,7 +12,6 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 
-	"ogugu/internal/controllers/common/pgerrors"
 	"ogugu/internal/controllers/common/response"
 	"ogugu/internal/models"
 	"ogugu/internal/repository/auth"
@@ -104,25 +103,21 @@ func (c *Controller) Signin(w http.ResponseWriter, r *http.Request) {
 
 	user, err := c.userRepo.GetUser(spanctx, "email", body.Email)
 	if err != nil {
-		c.log.Error("an error occured while fetching user", zap.Error(err))
-		status, _ := pgerrors.Details(err)
-		response.Error(w, "Login Failed, check credentials", status, c.log)
+		c.log.Warn("user not found", zap.String("email", body.Email))
+		response.Error(w, "Login Failed, check credentials", http.StatusUnauthorized, c.log)
 		return
 	}
 
 	hashpwd, err := c.authRepo.GetPasswordWithUserID(spanctx, user.ID)
 	if err != nil {
-		c.log.Error("an error occured while fetching user", zap.Error(err))
-		status, _ := pgerrors.Details(err)
-		response.Error(w, "Login Failed, check credentials", status, c.log)
+		c.log.Warn("could not get password", zap.String("email", body.Email), zap.Error(err))
+		response.Error(w, "Login Failed, check credentials", http.StatusUnauthorized, c.log)
 		return
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(hashpwd), []byte(body.Password))
 	if err != nil {
-		c.log.Error("password mismatch", zap.Error(err))
-		status, _ := pgerrors.Details(err)
-		response.Error(w, "Login Failed, check credentials", status, c.log)
+		response.Error(w, "Login Failed, check credentials", http.StatusUnauthorized, c.log)
 		return
 	}
 
@@ -191,14 +186,13 @@ func (c *Controller) Signup(w http.ResponseWriter, r *http.Request) {
 	user, err := c.userRepo.CreateUser(spanctx, id, body)
 	if err != nil {
 		c.log.Error("cannot create new user", zap.Error(err))
-		status, message := pgerrors.Details(err)
-		response.Error(w, message, status, c.log)
+		response.Error(w, "creating new user resource failed", http.StatusInternalServerError, c.log)
 		return
 	}
 
 	hashed, err := bcrypt.GenerateFromPassword([]byte(body.Password), 4)
 	if err != nil {
-		c.log.Error("cannot create new user", zap.Error(err))
+		c.log.Error("password hashing failed", zap.Error(err))
 		response.Error(w, "An error occured while creating the user", http.StatusInternalServerError, c.log)
 		return
 	}
@@ -206,8 +200,8 @@ func (c *Controller) Signup(w http.ResponseWriter, r *http.Request) {
 	err = c.authRepo.CreateAuth(spanctx, user.ID, string(hashed))
 	if err != nil {
 		c.log.Error("cannot create user auth details", zap.Error(err))
-		status, message := pgerrors.Details(err)
-		response.Error(w, message, status, c.log)
+		c.userRepo.DeleteUserByID(spanctx, user.ID)
+		response.Error(w, "user sign up aborted", http.StatusInternalServerError, c.log)
 		return
 	}
 
