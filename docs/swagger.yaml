@@ -1,0 +1,581 @@
+basePath: /v1/
+definitions:
+  models.CreateRssBody:
+    properties:
+      link:
+        type: string
+    required:
+    - link
+    type: object
+  models.CreateUserBody:
+    properties:
+      avatar:
+        type: string
+      email:
+        type: string
+      password:
+        maxLength: 75
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  models.Post:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      link:
+        type: string
+      pubDate:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.RssFeed:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      fetched:
+        type: boolean
+      id:
+        type: string
+      last_modified:
+        type: string
+      link:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.SigninBody:
+    properties:
+      email:
+        type: string
+      password:
+        maxLength: 75
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  models.Subscription:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      rss:
+        $ref: '#/definitions/models.RssFeed'
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.SubscriptionBody:
+    properties:
+      rss_id:
+        type: string
+    required:
+    - rss_id
+    type: object
+  models.User:
+    properties:
+      avatar:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  models.UserWithAuth:
+    properties:
+      auth_token:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+    type: object
+  response.FeedPosts:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.Post'
+        type: array
+      message:
+        type: string
+    type: object
+  response.Post:
+    properties:
+      data:
+        $ref: '#/definitions/models.Post'
+      message:
+        type: string
+    type: object
+  response.Posts:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.Post'
+        type: array
+      message:
+        type: string
+    type: object
+  response.Response:
+    properties:
+      data: {}
+      message:
+        type: string
+    type: object
+  response.RssFeed:
+    properties:
+      data:
+        $ref: '#/definitions/models.RssFeed'
+      message:
+        type: string
+    type: object
+  response.RssFeeds:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.RssFeed'
+        type: array
+      message:
+        type: string
+    type: object
+  response.Subscription:
+    properties:
+      data:
+        $ref: '#/definitions/models.Subscription'
+      message:
+        type: string
+    type: object
+  response.User:
+    properties:
+      data:
+        $ref: '#/definitions/models.User'
+      message:
+        type: string
+    type: object
+  response.UserWithAuth:
+    properties:
+      data:
+        $ref: '#/definitions/models.UserWithAuth'
+      message:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: An API for an RSS aggregator
+  title: Ogugu API
+  version: "0.1"
+paths:
+  /feed:
+    get:
+      description: Retrieve all RSS Feeds in the database.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: RSS Feeds found
+          schema:
+            $ref: '#/definitions/response.RssFeeds'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: RSS Feed not found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: An error occured on the server
+          schema:
+            $ref: '#/definitions/response.Response'
+        default:
+          description: An error occured
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Find all RSS feeds
+      tags:
+      - rss
+    post:
+      consumes:
+      - application/json
+      description: Create a new RSS feed by providing the feed's name and link.
+      parameters:
+      - description: Create a new RSS feed
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateRssBody'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: RSS Feed created
+          schema:
+            $ref: '#/definitions/response.RssFeed'
+        "400":
+          description: Invalid or malformed request body
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: An error occured on the server
+          schema:
+            $ref: '#/definitions/response.Response'
+        default:
+          description: An error occured
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Create a new RSS feed
+      tags:
+      - rss
+  /feed/{id}:
+    delete:
+      description: Delete an existing RSS feed using its unique ID.
+      parameters:
+      - description: ID of the RSS feed to retrieve
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: RSS Feed deleted
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: RSS Feed not found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: An error occured on the server
+          schema:
+            $ref: '#/definitions/response.Response'
+        default:
+          description: An error occured
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Delete an RSS feed by its ID
+      tags:
+      - rss
+    get:
+      description: Retrieve an existing RSS feed using its unique ID.
+      parameters:
+      - description: ID of the RSS feed to retrieve
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: RSS Feed found
+          schema:
+            $ref: '#/definitions/response.RssFeed'
+        "400":
+          description: Invalid or malformed request body
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: RSS Feed not found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: An error occured on the server
+          schema:
+            $ref: '#/definitions/response.Response'
+        default:
+          description: An error occured
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Find an RSS feed by its ID
+      tags:
+      - rss
+  /posts:
+    get:
+      description: get all posts
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Posts found
+          schema:
+            $ref: '#/definitions/response.Posts'
+        default:
+          description: Unable to get posts
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: get all posts
+      tags:
+      - posts
+  /posts/{id}:
+    get:
+      description: get a post by ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Post with ID found
+          schema:
+            $ref: '#/definitions/response.Post'
+        "404":
+          description: Post with ID not found
+          schema:
+            $ref: '#/definitions/response.Response'
+        default:
+          description: Unable to get post with id
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: get a post
+      tags:
+      - posts
+  /signin:
+    post:
+      consumes:
+      - application/json
+      description: signin to an existing account
+      parameters:
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.SigninBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.UserWithAuth'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: sign in
+      tags:
+      - account
+  /signout:
+    delete:
+      consumes:
+      - application/json
+      description: sign out from current session
+      produces:
+      - application/json
+      responses:
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: sign out
+      tags:
+      - account
+  /signup:
+    post:
+      consumes:
+      - application/json
+      description: create a new account
+      parameters:
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateUserBody'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: sign up
+      tags:
+      - account
+  /subscriptions:
+    delete:
+      consumes:
+      - application/json
+      description: unsubscribe from an rss feed
+      parameters:
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.SubscriptionBody'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: unsubscribe
+      tags:
+      - subscription
+    get:
+      consumes:
+      - application/json
+      description: get current user's subscriptions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Subscription'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: get subscriptions
+      tags:
+      - subscription
+    post:
+      consumes:
+      - application/json
+      description: subscribe to an rss feed
+      parameters:
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.SubscriptionBody'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.Subscription'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: subscribe
+      tags:
+      - subscription
+  /subscriptions/posts:
+    get:
+      consumes:
+      - application/json
+      description: get posts from feed that user is subscribed to
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.FeedPosts'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: get posts
+      tags:
+      - subscription
+securityDefinitions:
+  BearerAuth:
+    description: Enter your auth token in the format **Bearer &lt;token&gt;**
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
