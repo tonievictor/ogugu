@@ -4,23 +4,17 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"database/sql"
-
 	"github.com/spf13/cobra"
 )
 
-var (
-	dbConn  *sql.DB
-	rootCmd = &cobra.Command{
-		Use:   "cmd",
-		Short: "A brief description of your application",
-	}
-)
+var rootCmd = &cobra.Command{
+	Use:   "cmd",
+	Short: "A brief description of your application",
+}
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute(db *sql.DB) error {
-	dbConn = db
+func Execute() error {
 	return rootCmd.Execute()
 }
 

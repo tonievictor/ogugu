@@ -10,22 +10,31 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/spf13/cobra"
 
 	"github.com/oklog/ulid/v2"
 
+	"ogugu/internal/database"
 	"ogugu/internal/models"
 	"ogugu/internal/repository/posts"
 	"ogugu/internal/repository/rss"
 )
 
 // cronCmd represents the cron command
+
 var cronCmd = &cobra.Command{
 	Use:   "cron",
 	Short: "A brief description of your command",
 	Run: func(cmd *cobra.Command, args []string) {
+		db, err := cmd.Flags().GetString("database")
+		dbConn, err := database.New("pgx", db)
+		if err != nil {
+			fmt.Println("unable to initialize database", err.Error())
+			os.Exit(1)
+		}
 		if err := job(dbConn); err == nil {
 			fmt.Println("success!")
 		}
@@ -33,7 +42,13 @@ var cronCmd = &cobra.Command{
 }
 
 func init() {
+	cronCmd.Flags().StringP("database", "d", "", "database connection to run command against")
+	if err := cronCmd.MarkFlagRequired("database"); err != nil {
+		panic(err)
+	}
 	rootCmd.AddCommand(cronCmd)
+
+	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 func job(db *sql.DB) error {

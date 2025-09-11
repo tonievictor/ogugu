@@ -22,6 +22,16 @@ func TestRssService(t *testing.T) {
 		meta.Channel.LastModified = "Thu, 11 Jul 2025 15:04:05 GMT"
 		meta.Channel.Title = "Example RSS Feed"
 		meta.Channel.Description = "This is a description of the RSS feed."
+		meta.Channel.Link = "https://rsslink.web"
+		_, err := rs.Create(context.Background(), id, "https://rsslink.web/rss", meta)
+		require.NoError(t, err)
+	})
+
+	t.Run("test create rss", func(t *testing.T) {
+		var meta models.RSSMeta
+		meta.Channel.LastModified = "Thu, 11 Jul 2025 15:04:05 GMT"
+		meta.Channel.Title = "Example RSS Feed"
+		meta.Channel.Description = "This is a description of the RSS feed."
 		meta.Channel.Link = "This is a description of the RSS feed."
 		_, err := rs.Create(context.Background(), id, "link", meta)
 		require.NoError(t, err)
