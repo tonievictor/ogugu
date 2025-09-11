@@ -212,6 +212,10 @@ func getRSSMeta(link string) (models.RSSMeta, error) {
 		return models.RSSMeta{}, err
 	}
 
+	if err = Validate.Struct(meta); err != nil {
+		return models.RSSMeta{}, errors.New(err.Error())
+	}
+
 	lastModified := res.Header.Get("Last-Modified")
 	if lastModified == "" {
 		meta.Channel.LastModified = time.Now().Format(time.RFC1123)
