@@ -79,6 +79,7 @@ type RSSMeta struct {
 		LastModified string `xml:"lastBuildDate"`
 		Title        string `xml:"title" validate:"required"`
 		Description  string `xml:"description" validate:"required"`
+		Link         string `xml:"link" validate:"required"`
 	} `xml:"channel"`
 }
 

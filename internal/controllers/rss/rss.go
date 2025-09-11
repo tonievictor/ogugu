@@ -184,7 +184,7 @@ func (c *Controller) CreateRss(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := ulid.Make().String()
-	feed, err := c.rssRepo.Create(spanctx, id, body.Link, meta)
+	feed, err := c.rssRepo.Create(spanctx, id, meta)
 	if err != nil {
 		c.log.Error("could not create new feed", zap.Error(err))
 		response.Error(w, "could not create new feed", http.StatusInternalServerError, c.log)

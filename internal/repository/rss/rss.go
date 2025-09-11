@@ -168,7 +168,7 @@ func (r *Repository) FindByLink(ctx context.Context, link string) (models.RssFee
 	return rss, nil
 }
 
-func (r *Repository) Create(ctx context.Context, id, link string, body models.RSSMeta) (models.RssFeed, error) {
+func (r *Repository) Create(ctx context.Context, id string, body models.RSSMeta) (models.RssFeed, error) {
 	spanctx, span := tracer.Start(ctx, "insert rss feed")
 	defer span.End()
 
@@ -182,7 +182,7 @@ func (r *Repository) Create(ctx context.Context, id, link string, body models.RS
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING id, title, link, description, fetched, last_modified, created_at, updated_at;
 	`
-	row := r.db.QueryRowContext(dbctx, query, id, body.Channel.Title, link, body.Channel.Description, body.Channel.LastModified, time.Now(), time.Now())
+	row := r.db.QueryRowContext(dbctx, query, id, body.Channel.Title, body.Channel.Link, body.Channel.Description, body.Channel.LastModified, time.Now(), time.Now())
 	err := row.Scan(
 		&rss.ID,
 		&rss.Title,
