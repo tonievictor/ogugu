@@ -1,0 +1,2 @@
+ALTER TABLE IF EXISTS rss
+DROP COLUMN rss_link;

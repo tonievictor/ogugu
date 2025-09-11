@@ -36,6 +36,7 @@ type RssFeed struct {
 	Link         string    `json:"link"`
 	Description  string    `json:"description"`
 	Fetched      bool      `json:"fetched"`
+	RSSLink      string    `json:"rss_link"`
 	LastModified time.Time `json:"last_modified"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`

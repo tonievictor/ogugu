@@ -2,23 +2,17 @@ package posts
 
 import (
 	"context"
-	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"ogugu/models"
-	"ogugu/repository"
-	"ogugu/repository/rss"
+	"ogugu/internal/models"
+	"ogugu/internal/repository"
+	"ogugu/internal/repository/rss"
 )
 
 func TestPostService(t *testing.T) {
-	dir, err := os.Getwd()
-	require.NoError(t, err)
-
-	mfile := "file://" + filepath.Dir(filepath.Dir(dir)) + "/migrations"
-	db, teardown := repository.SetupTestDB(t, mfile)
+	db, teardown := repository.SetupTestDB(t)
 	t.Cleanup(teardown)
 
 	ps := New(db)

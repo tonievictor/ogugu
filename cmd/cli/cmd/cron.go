@@ -46,7 +46,7 @@ func job(db *sql.DB) error {
 	}
 
 	for _, feed := range feeds {
-		res, err := http.Get(feed.Link)
+		res, err := http.Get(feed.RSSLink)
 		if err != nil {
 			fmt.Println("an error occured while fetching rss data", err.Error())
 			continue

@@ -84,7 +84,7 @@ func (r *Repository) Fetch(ctx context.Context) ([]models.RssFeed, error) {
 	dbctx, cancel := context.WithTimeout(spanctx, dbtimeout)
 	defer cancel()
 
-	query := `SELECT id, title, link, description, fetched, last_modified, created_at, updated_at FROM rss;`
+	query := `SELECT id, title, link, description, fetched, last_modified, rss_link, created_at, updated_at FROM rss;`
 	rows, err := r.db.QueryContext(dbctx, query)
 	if err != nil {
 		return nil, err
@@ -101,6 +101,7 @@ func (r *Repository) Fetch(ctx context.Context) ([]models.RssFeed, error) {
 			&rss.Description,
 			&rss.Fetched,
 			&rss.LastModified,
+			&rss.RSSLink,
 			&rss.CreatedAt,
 			&rss.UpdatedAt,
 		)
@@ -120,7 +121,7 @@ func (r *Repository) FindByID(ctx context.Context, id string) (models.RssFeed, e
 	dbctx, cancel := context.WithTimeout(spanctx, dbtimeout)
 	defer cancel()
 
-	query := `SELECT id, title, link, description, fetched, last_modified, created_at, updated_at FROM rss WHERE id = $1;`
+	query := `SELECT id, title, link, description, fetched, last_modified, rss_link, created_at, updated_at FROM rss WHERE id = $1;`
 
 	row := r.db.QueryRowContext(dbctx, query, id)
 	err := row.Scan(
@@ -130,6 +131,7 @@ func (r *Repository) FindByID(ctx context.Context, id string) (models.RssFeed, e
 		&rss.Description,
 		&rss.Fetched,
 		&rss.LastModified,
+		&rss.RSSLink,
 		&rss.CreatedAt,
 		&rss.UpdatedAt,
 	)
@@ -148,7 +150,7 @@ func (r *Repository) FindByLink(ctx context.Context, link string) (models.RssFee
 	dbctx, cancel := context.WithTimeout(spanctx, dbtimeout)
 	defer cancel()
 
-	query := `SELECT id, title, link, description, fetched, last_modified, created_at, updated_at FROM rss WHERE link = $1;`
+	query := `SELECT id, title, link, description, fetched, last_modified, rss_link, created_at, updated_at FROM rss WHERE link = $1;`
 
 	row := r.db.QueryRowContext(dbctx, query, link)
 	err := row.Scan(
@@ -158,6 +160,7 @@ func (r *Repository) FindByLink(ctx context.Context, link string) (models.RssFee
 		&rss.Description,
 		&rss.Fetched,
 		&rss.LastModified,
+		&rss.RSSLink,
 		&rss.CreatedAt,
 		&rss.UpdatedAt,
 	)
@@ -168,7 +171,7 @@ func (r *Repository) FindByLink(ctx context.Context, link string) (models.RssFee
 	return rss, nil
 }
 
-func (r *Repository) Create(ctx context.Context, id string, body models.RSSMeta) (models.RssFeed, error) {
+func (r *Repository) Create(ctx context.Context, id, rss_link string, body models.RSSMeta) (models.RssFeed, error) {
 	spanctx, span := tracer.Start(ctx, "insert rss feed")
 	defer span.End()
 
@@ -178,11 +181,11 @@ func (r *Repository) Create(ctx context.Context, id string, body models.RSSMeta)
 	defer cancel()
 
 	query := `
-		INSERT INTO rss (id, title, link, description, last_modified, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
-		RETURNING id, title, link, description, fetched, last_modified, created_at, updated_at;
+		INSERT INTO rss (id, title, link, description, last_modified, rss_link, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		RETURNING id, title, link, description, fetched, last_modified, rss_link, created_at, updated_at;
 	`
-	row := r.db.QueryRowContext(dbctx, query, id, body.Channel.Title, body.Channel.Link, body.Channel.Description, body.Channel.LastModified, time.Now(), time.Now())
+	row := r.db.QueryRowContext(dbctx, query, id, body.Channel.Title, body.Channel.Link, body.Channel.Description, body.Channel.LastModified, rss_link, time.Now(), time.Now())
 	err := row.Scan(
 		&rss.ID,
 		&rss.Title,
@@ -190,6 +193,7 @@ func (r *Repository) Create(ctx context.Context, id string, body models.RSSMeta)
 		&rss.Description,
 		&rss.Fetched,
 		&rss.LastModified,
+		&rss.RSSLink,
 		&rss.CreatedAt,
 		&rss.UpdatedAt,
 	)

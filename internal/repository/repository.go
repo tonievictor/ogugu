@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -14,10 +15,12 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 
+	"github.com/tonievictor/dotenv"
 	"ogugu/internal/database"
 )
 
-func SetupTestDB(t *testing.T, mdir string) (*sql.DB, func()) {
+func SetupTestDB(t *testing.T) (*sql.DB, func()) {
+	dotenv.Config(dotenv.WithFilename("../../../.env"))
 	containerReq := testcontainers.ContainerRequest{
 		Image:        "postgres:16-alpine",
 		ExposedPorts: []string{"5432/tcp"},
@@ -46,7 +49,7 @@ func SetupTestDB(t *testing.T, mdir string) (*sql.DB, func()) {
 	db, err := database.New("pgx", dbstr)
 	require.NoError(t, err)
 
-	migrateDB(t, dbstr, mdir)
+	migrateDB(t, dbstr)
 
 	return db, func() {
 		err := dbContainer.Terminate(context.Background())
@@ -54,10 +57,11 @@ func SetupTestDB(t *testing.T, mdir string) (*sql.DB, func()) {
 	}
 }
 
-func migrateDB(t *testing.T, dbconnstr, mdir string) {
+func migrateDB(t *testing.T, dbconnstr string) {
 	// magic file path, not good at all. will update
 	// mdir is the migration directory
-	m, err := migrate.New(mdir, dbconnstr)
+
+	m, err := migrate.New(os.Getenv("MIGRATIONS_PATH"), dbconnstr)
 	require.NoError(t, err)
 	defer m.Close()
 

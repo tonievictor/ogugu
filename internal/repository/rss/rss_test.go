@@ -2,22 +2,16 @@ package rss
 
 import (
 	"context"
-	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"ogugu/models"
-	"ogugu/repository"
+	"ogugu/internal/models"
+	"ogugu/internal/repository"
 )
 
 func TestRssService(t *testing.T) {
-	dir, err := os.Getwd()
-	require.NoError(t, err)
-
-	mfile := "file://" + filepath.Dir(filepath.Dir(dir)) + "/migrations"
-	db, teardown := repository.SetupTestDB(t, mfile)
+	db, teardown := repository.SetupTestDB(t)
 	t.Cleanup(teardown)
 
 	rs := New(db)
@@ -28,6 +22,7 @@ func TestRssService(t *testing.T) {
 		meta.Channel.LastModified = "Thu, 11 Jul 2025 15:04:05 GMT"
 		meta.Channel.Title = "Example RSS Feed"
 		meta.Channel.Description = "This is a description of the RSS feed."
+		meta.Channel.Link = "This is a description of the RSS feed."
 		_, err := rs.Create(context.Background(), id, "link", meta)
 		require.NoError(t, err)
 	})
