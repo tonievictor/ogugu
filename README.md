@@ -11,6 +11,7 @@ Ogugu is a backend application for an RSS feed aggregator and reader. It allows 
 - Postgres
 - Redis
 - Docker
+- CobraCLI
 
 ## Prerequisites 
 1. [Golang 1.24+](https://go.dev/doc/install)
@@ -86,3 +87,17 @@ cd cmd/server && go run main.go
 ### View monitoring dashboard (if set up):
 - Navigate to: http://localhost:3000
 - Login credentials can be found in [terraform/values/grafana.yaml](./terraform/values/grafana.yaml) 
+
+## CLI
+Ogugu comes with a CLI tool that allows you to fetch RSS posts from all subscribed feeds. This is useful for running periodic updates via a cron job or other task scheduler.
+
+1. Build the CLI binary
+```bash
+go build -o cli cmd/cli/main.go
+```
+2. Run the CLI
+```bash 
+./cli cron --database "<database connection string>"
+
+## replace <database connection string> with your actual PostgreSQL connection string.
+```
