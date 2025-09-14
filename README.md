@@ -37,11 +37,12 @@ go get ./..
 ```bash
 cp .env.example cmd/server/.env
 ```
-4. Set up the database and cache:
+4. Set up the database and cache (optional):
+> [!NOTE]
+> If you don't already have a PostgreSQL and Redis instance, you can set them up by running the following command. This will spin up PostgreSQL and Redis containers and expose them on your machine
 ```bash
 docker compose up -d
 ```
-> This will expose PostgreSQL and Redis on your machine for Ogugu to connect to.
 5. Run Database Migrations
 ```bash
 export PGURL=<databaseurl>
@@ -50,6 +51,7 @@ migrate -database ${PGURL} -path migrations up
 
 ### Kubernetes and Monitoring Setup (optional)
 1. Setup a kubernetes cluster
+> [!TIP]
 > For local development and testing, kind (Kubernetes IN Docker) is recommended. It provides a lightweight Kubernetes cluster running inside Docker containers on your machine.
 ```bash
 kind create cluster
